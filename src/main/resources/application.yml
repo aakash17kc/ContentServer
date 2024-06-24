@@ -1,0 +1,84 @@
+spring:
+  application:
+    name: ContentServer
+  servlet:
+    multipart:
+      # max file size for upload
+      max-file-size: 100MB
+      max-request-size: 110MB
+      #location: /resources
+  data:
+    # mongodb config
+    mongodb:
+      uri: mongodb://localhost:27017/
+      database: contentdb
+      auto-index-creation: true
+
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  web:
+    resources:
+      #cache control settings
+      cache:
+        cachecontrol:
+          cache-public: true
+          max-age: 5
+          must-revalidate: true
+  app:
+    content-type:
+      json: "application/json"
+logging:
+  level:
+    root: info
+    com:
+      aakash:
+        contentserver:
+          services: debug
+          controllers: debug
+          repositories: debug
+          exceptions: debug
+    io:
+      github:
+        resilience4j: info
+server:
+  tomcat:
+    max-connections: 1000
+    accept-count: 120
+    threads:
+      max: 200
+  port : 8080
+
+# resilience4j configuration for circuit breaker for all services.
+resilience4j:
+  circuitbreaker:
+    instances:
+      circuitBreakerAppWide:
+        registerHealthIndicator: true
+        slidingWindowSize: 100
+        minimumNumberOfCalls: 10
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+        recordExceptions:
+          - java.util.concurrent.TimeoutException
+        ignoreExceptions:
+          - com.aakash.contentserver.exceptions.EntityNotFoundException
+          - com.aakash.contentserver.exceptions.BadRequestException
+          - com.aakash.contentserver.exceptions.ContentServerException
+          - com.aakash.contentserver.exceptions.UserException
+          - com.aakash.contentserver.exceptions.EntityFailedUpdateException
+          - com.aakash.contentserver.exceptions.ImageProcessingException
+          - java.lang.IllegalArgumentException
+# rate limiter configuration to support 200 requests per second
+  ratelimiter:
+    instances:
+      rateLimiterAppWide:
+        limitForPeriod: 200
+        limitRefreshPeriod: 1s
+        timeoutDuration: 0ms
+

@@ -1,0 +1,50 @@
+# This file contains the OpenAPI specification for the content server service.
+# Need to add all paths and operations that the service supports.
+openapi: 3.0.0
+info:
+  title: File Upload API
+  description: API for uploading files with captions and creator information.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/v1
+
+paths:
+  /posts:
+    post:
+      summary: Uploads a file with caption and creator feild.
+      operationId: uploadFile
+      tags:
+        - File Upload
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: File to be uploaded.
+                caption:
+                  type: string
+                  description: Caption for the post.
+                creator:
+                  type: string
+                  description: Creator of the post.
+      responses:
+        '200':
+          description: Post created successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  fileId:
+                    type: string
+        '400':
+          description: Bad request if the form data is invalid.
+        '500':
+          description: Server error

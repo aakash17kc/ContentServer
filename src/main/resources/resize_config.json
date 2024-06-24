@@ -1,0 +1,14 @@
+{
+  "post": {
+    "height": 600,
+    "width": 600,
+    "quality": 90,
+    "type": "jpg"
+  },
+  "comment": {
+    "height": 100,
+    "width": 100,
+    "quality": 40,
+    "type": "jpg"
+  }
+}
