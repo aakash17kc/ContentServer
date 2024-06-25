@@ -65,6 +65,8 @@ Typically, a MVP Production ready service would have the below functionalities.
 * We can use Kubernetes for scaling the service. We can use Horizontal Pod Autoscaler to scale the pods based on CPU/Memory usage.
 * We can Global and local load balancers to distribute the load across multiple instances in multiple regions.
 * We can shard our database to handle more requests. We can use MongoDB sharding for this along with consistent hashing to distribute the data across shards.
+* We can implement CQRS pattern to separate the read and write operations. This can help in scaling the read and write operations independently.
+* We can also implement Event Sourcing to store the events that led to the current state of the data. This can help in auditing and replaying the events.
 * We can brainstorm data access patterns and create db indexes for faster access.
 * We can also use managed databases like AWS DynamoDB for scaling as can support trillions of requests per day.
 * We can implement our web server using Non blocking I/O frameworks like SpringBoot Webflux and netty.
