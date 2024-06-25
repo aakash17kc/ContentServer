@@ -26,7 +26,7 @@
     * ImageService - Service class for handling Image entity
 
 #### API Endpoints
-Postman Collection - https://api.postman.com/collections/7922059-48e27b7f-0ec1-4fab-9fba-0910f464f8fe?access_key=PMAT-01J16ZGAYCGY4CJH4CRNMKMZ1E
+Postman Collection - https://api.postman.com/collections/7922059-48e27b7f-0ec1-4fab-9fba-0910f464f8fe?access_key={KEY}
 * Controllers
   * PostController - Controller class that provides APIs for Post entity
     * baseUrl: /v1
