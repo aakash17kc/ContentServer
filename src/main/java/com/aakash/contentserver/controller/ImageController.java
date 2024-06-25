@@ -22,6 +22,11 @@ public class ImageController {
     this.cacheControl = cacheControl;
   }
 
+  /**
+   * Get an image by its id.
+   * @param imageId
+   * @return
+   */
   @GetMapping("/{imageId}")
   public ResponseEntity<ImageDTO> getImage(@PathVariable String imageId) {
     ImageDTO imageDTO = imageService.getImage(imageId);
@@ -31,6 +36,12 @@ public class ImageController {
         .body(imageDTO);
   }
 
+  /**
+   * Get the content of an image by its id.
+   * @param imageId
+   * @return
+   * @throws IOException
+   */
   @GetMapping("/{imageId}/content")
   public ResponseEntity<?> getImageContent(@PathVariable String imageId) throws IOException {
     byte[] image = imageService.getImageContent(imageId);
@@ -41,6 +52,5 @@ public class ImageController {
         .cacheControl(cacheControl)
         .headers(headers)
         .body(image);
-//    return new ResponseEntity<>(image, headers, HttpStatus.OK);
   }
 }

@@ -37,7 +37,7 @@
   * As a user, I should be able to delete a comment (created by me) from a post => Implemented
   * As a user, I should be able to get the list of all posts along with the last 2 comments on each post => Implemented
   * RESTful Web API (JSON) => Implemented
-  * Maximum image size - 100MB  => Implemented
+  * Maximum image size - 100MB  => Implemented in application.yml
   * Allowed image formats: .png, .jpg, .bmp. => Implemented
   * Save uploaded images in the original format => Implemented
   * Convert uploaded images to .jpg format and resize to 600x600 => Implemented

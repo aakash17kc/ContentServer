@@ -55,6 +55,13 @@ public class CommentsController {
         .body(savedComment);
   }
 
+  /**
+   * Get a comment by its id.
+   * @param commentId The id of the comment to be fetched.
+   * @return The fetched comment.
+   * @throws EntityNotFoundException If the comment doesn't exist.
+   * @throws ContentServerException If there is an issue processing the request.
+   */
   @GetMapping("/{commentId}")
   public ResponseEntity<CommentDTO> getComment(@PathVariable String commentId)
       throws EntityNotFoundException, ContentServerException {
@@ -66,6 +73,14 @@ public class CommentsController {
         .body(fetchedComment);
   }
 
+  /**
+   * Delete a comment by its id if the creator is the same as the comment creator.
+   * @param commentId The id of the comment to be deleted.
+   * @param creator The creator param.
+   * @return The message of the deletion.
+   * @throws EntityNotFoundException If the comment doesn't exist.
+   * @throws ContentServerException If there is an issue processing the request.
+   */
   @DeleteMapping("/{commentId}")
   public ResponseEntity<String> deleteComment(@PathVariable("commentId") String commentId, @RequestParam("creator") String creator)
       throws EntityNotFoundException, ContentServerException {
