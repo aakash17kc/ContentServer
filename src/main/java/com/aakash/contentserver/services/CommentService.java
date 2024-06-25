@@ -166,6 +166,22 @@ public class CommentService extends ContentService<CommentDTO> {
     return new CommentDTO();
   }
 
+  protected String localRateLimitFallback(String placeholder1, String placeholder2, RequestNotPermitted exception) {
+    circuitBreakerConfig.rateLimitFallback(exception);
+    return "";
+  }
+
+  /**
+   * Fallback method for circuit breaker
+   * Method argument should be same as the method for which the fallback is defined
+   * @param exception Exception
+   * @return CommentDTO
+   */
+  protected String localCircuitBreakerFallback(String placeholder1, String placeholder2, RequestNotPermitted exception) {
+    circuitBreakerConfig.circuitBreakerFallback(exception);
+    return "";
+  }
+
   /**
    * Get comments for a post in descending order of creation time
    * @param id Post id

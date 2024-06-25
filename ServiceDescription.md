@@ -1,4 +1,4 @@
-#### Class Heiarchy
+#### Class Hierarchy
 
 * Entities 
   * Content - abstract parent class
@@ -26,6 +26,7 @@
     * ImageService - Service class for handling Image entity
 
 #### API Endpoints
+Postman Collection - https://api.postman.com/collections/7922059-48e27b7f-0ec1-4fab-9fba-0910f464f8fe?access_key=PMAT-01J16ZGAYCGY4CJH4CRNMKMZ1E
 * Controllers
   * PostController - Controller class that provides APIs for Post entity
     * baseUrl: /v1
@@ -49,7 +50,7 @@
       * The response has cursor based pagination. Navigation links are provided in the response.
       * ![Optional Image Alt Text](src/main/resources/images/get_all_posts.png)
       * ![Optional Image Alt Text](src/main/resources/images/pagination.png)
-    * **/posts/{postId}** -curl --location --request PUT 'localhost:8080/v1/posts/1/comments?caption=updated'
+    * **/posts/{postId}** -curl --location --request PUT 'localhost:8080/v1/posts/1?caption=updated'
       * Updates the caption of the post
       * creator cannot be updated
     * **/posts/{postId}/comments** -curl --location --request GET 'localhost:8080/v1/posts/1/comments'
@@ -65,7 +66,7 @@
         "creator" : "aakash"
         }'
         * Creates a comment for the postId mentioned in the query params.
-        * The resonse also contains the associated postId
+        * The response also contains the associated postId
         * ![Optional Image Alt Text](src/main/resources/images/comments.png)
       * **/comments/{commentId}** -curl --location --request GET 'localhost:8080/v1/comments/1'
         * Returns the comment with the commentId
