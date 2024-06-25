@@ -8,6 +8,17 @@ These are the steps I would take to ship the service to production and for it to
 Some of the changes can be made in the code, for example the image processing logic can be moved to a different service.
 Other suggestions are related to infrastructure, database, security, monitoring, and other production aspects.
 
+Typically, a MVP Production ready service would have the below functionalities.
+  * CRUD operations for Post
+  * CRUD operations for Comment
+  * Add replies to Comment.
+  * Add images to comments - gifs, etc
+  * React to posts,comments - like, dislike, etc
+  * Share posts with other users
+  * Like count, comment count, share count on posts
+  * Like counts on Comments
+  * Later on, we can add support to multiple images and videos to posts.
+
 ### Image Processing Logic
 * The Image processing logic can be part of a different service altogether, that can be scaled independently.
     * We can implement event-driver architecture using Kafka Topics/AWS SNS/AWS SQS to communicate between services.
@@ -19,11 +30,11 @@ Other suggestions are related to infrastructure, database, security, monitoring,
         * The ContentServer receives the event and updates the post entity with the processed image url.
         * The post can then be shown to the user with the processed image. For this, the ContentServer can send an event to the FeedService, that adds the post to the user feed.
 * We can also use a third party service like Cloudinary to process the images.
-* We can use a CDN to cache the images and serve them faster to the user.
+* We can integrate a CDN to cache the images and serve them faster to the user.
 
 ### Security
 * We need to integrate TLS/SSL to upgrade the server to HTTPS for secure communication.
-* We can use a Load Balancer to distribute the load across multiple instances of the service.
+* We can integrate use a Load Balancer to distribute the load across multiple instances of the service.
 * We can use an API Gateway to manage the APIs and route the requests to the appropriate service.
   It can be configured to have Bot Protection, Rate Limiting, etc. We can use AWS API Gateway.
 * To setup an authentication logic in the service to validate user request we can use spring security filter chains.
@@ -35,8 +46,9 @@ Other suggestions are related to infrastructure, database, security, monitoring,
         * The token can have an expiry time, after which the user needs to login again.
         * If user wants to invalidate token, we can use a blacklist to store the token and check the token in the blacklist before validating.
     * We can use request matchers to decide which endpoints need authentication and which don't.
+    * We can implement CSRF tokens to prevent CSRF attacks.
     * We can also implement OAuth2.0 with OpenID, along with 2FA.
-* We can use AWS Cognito for authentication. AWS WAF for Web Application Firewall, AWS Shield for DDoS Protection.
+* We can use AWS Cognito for authentication, AWS WAF for Web Application Firewall, AWS Shield for DDoS Protection.
 
 ### Testing
 * We'll have to write unit tests for the service and make sure to cover all use cases.
@@ -44,13 +56,12 @@ Other suggestions are related to infrastructure, database, security, monitoring,
     * We can use JUnit and Mockito for writing unit tests. We can also use SpringBootTest for UTs
 * We can use Postman for API testing.
 * We can use JMeter/Vegeta for load testing.
-* We can integrate SonarQube in our CI/CR for code quality checks during PRs.
-* We can use Jacoco for code coverage.
+* We can integrate SonarQube in our CI/CR for code quality and coverage checks during PRs.
 * We can use Gatling for performance testing.
 * We can setup Karate for Integration testing of APIs end to end. We can create a new module inside this repo to have all integration tests
-* We can use WireMock for mocking external services.
 
 ### Scalability, Availability and Performance
+
 * We can use Kubernetes for scaling the service. We can use Horizontal Pod Autoscaler to scale the pods based on CPU/Memory usage.
 * We can Global and local load balancers to distribute the load across multiple instances in multiple regions.
 * We can shard our database to handle more requests. We can use MongoDB sharding for this along with consistent hashing to distribute the data across shards.
@@ -71,7 +82,7 @@ Other suggestions are related to infrastructure, database, security, monitoring,
 * We can use Helm for package management. I've added a sample helm chart that will deploy the service.
 * We can use Terraform for to create and deploy resources.
 * We can use AWS S3 for storing images data.
-* We can use AWS EKS for Kubernetes and AWS ECR for storing docker images. We can implement a rolling update strategy for simple services or blue-green deployment strategy for user facing services.
+* We can use AWS EKS for Kubernetes for deployment and AWS ECR for storing docker images. We can implement a blue-green deployment strategy to minimise downtime.
 * We can use AWS Lambda for serverless functions.
 * We can use AWS Route 53 for DNS.
 * We can use AWS SNS/SQS for message queuing and event driven flow.
@@ -117,7 +128,7 @@ Other suggestions are related to infrastructure, database, security, monitoring,
 * There should be clear documentation on how to setup the service, how to run the tests, how to deploy the service, any features being added/deprecated etc.
 
 ### Training
-* For complex designs, we can have a training session for the team to understand the design and the architecture.
+* For complex designs, we can have a training session for the other team to understand the design and the architecture.
 * We can have sessions with Tech Leads/Architects/CTO to brainstorm innovative designs and architectures.
 
 ### Support

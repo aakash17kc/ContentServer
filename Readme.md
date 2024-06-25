@@ -21,7 +21,7 @@
   * MongoDB - For database. I've using a single instance of MongoDB for this project. In a production env, a replicaset
    should be used with primary-secondary architecture. We can discuss whether to have an in-sync or async replication.
   * If not using Spring, we'll have to setup factory methods to create the instances for different services.
-* The image is served in a seperate /image endpoint. The idea behind this was that the image can fetched only when required. The GET /post/{postId} endpoint returns the image link 
+* The image is served in a separate /image endpoint. The idea behind this was that the image can fetched only when required. The GET /post/{postId} endpoint returns the image link 
   which can be used to fetch the image. This helps to decouple the image from the data.
 * The service was designed based on the principles of Domain-Driven Design (DDD) and Clean Architecture.
 * The service has RESTful API that provides endpoints to creat a post with pictures and captions. Users can also add comments to the posts.
