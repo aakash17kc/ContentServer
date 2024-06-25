@@ -39,7 +39,7 @@
   * The application runs on port 8080 by default. The port can be changed in the application.yml file.
   * The application can be accessed at http://localhost:8080/v1/
   * The repo can be imported into any IDE and run as a Spring Boot application.
-  * 
+
 ### Functional requirements:
   * As a user, I should be able to create posts with images (1 post - 1 image) => Implemented
   * As a user, I should be able to set a text caption when I create a post => Implemented
