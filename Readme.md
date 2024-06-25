@@ -19,10 +19,15 @@
   * AWS SDK - To upload files to S3. I've implemented multipart upload to S3.
   * MongoDB - For database. I've using a single instance of MongoDB for this project. In a production env, a replicaset
    should be used with primary-secondary architecture. We can discuss whether to have an in-sync or async replication.
+  * If not using Spring, we'll have to setup factory methods to create the instances for different services.
+* The image is served in a seperate /image endpoint. The idea behind this was that the image can fetched only when required. The GET /post/{postId} endpoint returns the image link 
+  which can be used to fetch the image. This helps to decouple the image from the data.
 * The service was designed based on the principles of Domain-Driven Design (DDD) and Clean Architecture.
 * The service has RESTful API that provides endpoints to creat a post with pictures and captions. Users can also add comments to the posts.
 * All configurations are available in the configurations package.
 * Jakarta validation annotations have been added to entity fields for request validation.
+* @Indexed annotation has been added to the id field for faster retrieval.
+* CacheControl config has been added for the GET endpoints.
 
 ### Functional requirements:
   * As a user, I should be able to create posts with images (1 post - 1 image) => Implemented
@@ -39,7 +44,7 @@
   * Posts should be sorted by the number of comments (desc) => Implemented
   * Retrieve posts via a cursor-based pagination => Implemented
   * The image can be access by using the link in the GET /post/{postId} request.
-  * The images are save on an S3 bucket created by me. So the POST /post api would fail as the creds are stored in my machine. Please feel free to ask for the creds.
+  * The images are saved on an S3 bucket created by me. So the POST /post api would fail as the creds are stored in my machine. Please feel free to ask for the creds.
 
 ##### Note: The image configuration has been stored in resize_config.json in the resources folder by their content (post,comment ) type
 

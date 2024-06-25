@@ -11,7 +11,6 @@ import java.util.UUID;
 @Document(collection = "comments")
 public class Comment extends Content {
 
-  //@Indexed
   private UUID postId;
 
   public Comment() {

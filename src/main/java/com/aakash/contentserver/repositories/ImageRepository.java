@@ -9,14 +9,8 @@ import java.util.UUID;
 
 /**
  * Repository for Image entity.
-
  */
 @Repository
 public interface ImageRepository extends FileRepository<Image> {
-  /**
-   * Find image by id.
-   * @param id UUID
-   * @return Optional of Image
-   */
-  Optional<Image> findById(UUID id);
+
 }

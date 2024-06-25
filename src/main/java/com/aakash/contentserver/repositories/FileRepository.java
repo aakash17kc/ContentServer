@@ -9,6 +9,7 @@ import java.util.UUID;
 public interface FileRepository<T extends FileType> extends MongoRepository<T, UUID> {
   /**
    * Find entity of file type by id.
+   *
    * @param id UUID
    * @return Optional of entity
    */

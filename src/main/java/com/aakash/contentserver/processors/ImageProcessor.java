@@ -50,14 +50,15 @@ public class ImageProcessor {
    * To make changes to the resize configuration, update the resize_config.json file.
    * This method is asynchronous and runs on a separate thread. The Async configuration is present in the AsyncConfig class.
    * If multiple services need to use this configuration, it can be saved to the database and fetched from there.
-   * @param file Image file to resize.
-   * @param image Image object to set the type.
+   *
+   * @param file         Image file to resize.
+   * @param image        Image object to set the type.
    * @param activityType Content type to fetch the configuration.
-   * @param <T> Image type.
+   * @param <T>          Image type.
    * @throws IOException Exception if there is an issue with the file.
    */
   @Async("taskExecutor")
-  public  <T extends Image> void resizeImageAndUploadToS3(MultipartFile file, T image, ActivityType activityType) throws IOException {
+  public <T extends Image> void resizeImageAndUploadToS3(MultipartFile file, T image, ActivityType activityType) throws IOException {
 
     // Fetching image configuration for the ActivityType.
     // In this case, it's the post activity.
@@ -72,19 +73,20 @@ public class ImageProcessor {
     ByteArrayOutputStream imageOutputStream = imageFunctionImpl.resizeImage(file, width, height, format);
     // Uploading the image to S3.
     logger.info("Uploading resized image to S3 for postId: {}", image.getPostId());
-    s3ProcessorImpl.uploadFileAsByteStream(imageOutputStream.toByteArray(), destinationFileName,image);
+    s3ProcessorImpl.uploadFileAsByteStream(imageOutputStream.toByteArray(), destinationFileName, image);
   }
 
   /**
    * Method to upload the original image to S3.
-   * @param file Image file to upload.
-   * @param image Image object to set the type.
+   *
+   * @param file         Image file to upload.
+   * @param image        Image object to set the type.
    * @param activityType Content type to fetch the configuration.
-   * @param <T> Image type.
+   * @param <T>          Image type.
    * @throws IOException Exception if there is an issue with the file.
    */
   @Async("taskExecutor")
-  public  <T extends Image> void uploadOriginalImageToS3(MultipartFile file, T image, ActivityType activityType) throws IOException {
+  public <T extends Image> void uploadOriginalImageToS3(MultipartFile file, T image, ActivityType activityType) throws IOException {
     logger.info("Uploading original image to S3 for postId: {}", image.getPostId());
     JsonNode imageConfig = getImageConfigurationByActivity(activityType);
     String format = imageConfig.get(ImageConstants.TYPE).asText();
@@ -93,31 +95,36 @@ public class ImageProcessor {
     logger.info("Image uploaded successfully for postId: " + image.getPostId());
   }
 
-  public  <T extends Image> byte[] downloadImageFromS3(T image) throws IOException {
-    logger.info("Downloading original image to S3 for postId: {}", image.getPostId());
+  public <T extends Image> byte[] downloadImageFromS3(T image) throws IOException {
+    logger.info("Downloading resized image from S3 for postId: {}", image.getPostId());
     return s3ProcessorImpl.downloadFile(image);
 
   }
 
   /**
    * Method to validate the image type.
+   *
    * @param file Image file to validate.
    */
   public void validateSupportedImageType(MultipartFile file) {
     imageSupportedTypeImpl.getType(file);
   }
-  private int getImageWidth(JsonNode jsonNode){
+
+  private int getImageWidth(JsonNode jsonNode) {
     return jsonNode.get(ImageConstants.WIDTH).asInt();
   }
-  private int getImageHeight(JsonNode jsonNode){
+
+  private int getImageHeight(JsonNode jsonNode) {
     return jsonNode.get(ImageConstants.HEIGHT).asInt();
   }
-  private String getImageFormat(JsonNode jsonNode){
+
+  private String getImageFormat(JsonNode jsonNode) {
     return jsonNode.get(ImageConstants.TYPE).asText();
   }
 
   /**
    * Method to get the image configuration based on the activity type - Post or Comment.
+   *
    * @param activityType Activity type to fetch the configuration.
    * @return JsonNode Image configuration.
    */

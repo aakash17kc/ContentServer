@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    active: dev
   application:
     name: ContentServer
   servlet:
@@ -81,4 +83,24 @@ resilience4j:
         limitForPeriod: 200
         limitRefreshPeriod: 1s
         timeoutDuration: 0ms
+
+# Different app configurations for different environments.
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: jdbc:mysql://example.org/proddb
+    username: prodUser
+    password: prodPass
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  mail:
+    host: smtp.example.org
+server:
+  port: 443
+
 

@@ -24,17 +24,21 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping("/v1/comments")
 public class CommentsController {
   private final CommentService commentService;
-  public CommentsController(CommentService commentService) {
+  private final CacheControl cacheControl;
+
+  public CommentsController(CommentService commentService, CacheControl cacheControl) {
     this.commentService = commentService;
+    this.cacheControl = cacheControl;
   }
 
   /**
    * Create a comment for an existing post.
-   * @param postId The id of the post for which the comment is to be created.
+   *
+   * @param postId  The id of the post for which the comment is to be created.
    * @param comment The comment object to be created.
    * @return The created comment object.
    * @throws EntityNotFoundException If the post doesn't exist.
-   * @throws ContentServerException If there is an issue processing the request.
+   * @throws ContentServerException  If there is an issue processing the request.
    */
   @PostMapping
   public ResponseEntity<CommentDTO> createComment(@RequestParam String postId, @RequestBody Comment comment)
@@ -45,7 +49,10 @@ public class CommentsController {
         .path("/{id}")
         .buildAndExpand(savedComment)
         .toUri();
-    return ResponseEntity.created(location).body(savedComment);
+    return ResponseEntity
+        .created(location)
+        .cacheControl(cacheControl)
+        .body(savedComment);
   }
 
   @GetMapping("/{commentId}")
@@ -53,14 +60,20 @@ public class CommentsController {
       throws EntityNotFoundException, ContentServerException {
 
     CommentDTO fetchedComment = commentService.getComment(commentId);
-    return ResponseEntity.status(HttpStatus.OK).cacheControl(CacheControl.maxAge(5, TimeUnit.SECONDS)).body(fetchedComment);
+    return ResponseEntity
+        .status(HttpStatus.OK)
+        .cacheControl(cacheControl)
+        .body(fetchedComment);
   }
 
   @DeleteMapping("/{commentId}")
   public ResponseEntity<String> deleteComment(@PathVariable("commentId") String commentId, @RequestParam("creator") String creator)
       throws EntityNotFoundException, ContentServerException {
 
-    String message = commentService.deleteComment(commentId,creator);
-    return ResponseEntity.status(HttpStatus.NO_CONTENT).cacheControl(CacheControl.maxAge(5, TimeUnit.SECONDS)).body(message);
+    String message = commentService.deleteComment(commentId, creator);
+    return ResponseEntity
+        .status(HttpStatus.NO_CONTENT)
+        .cacheControl(cacheControl)
+        .body(message);
   }
 }

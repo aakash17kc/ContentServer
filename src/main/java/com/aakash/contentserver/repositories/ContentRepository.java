@@ -9,12 +9,15 @@ import java.util.UUID;
 public interface ContentRepository<T extends Content> extends MongoRepository<T, UUID> {
   /**
    * Find entity of content type by id.
+   *
    * @param id UUID
    * @return Optional of entity
    */
   public Optional<T> findById(UUID id);
+
   /**
    * Delete entity of content type by id.
+   *
    * @param id UUID
    */
   public void deleteById(UUID id);

@@ -12,19 +12,24 @@ import java.util.UUID;
 public interface CommentsRepository extends ContentRepository<Comment> {
   /**
    * Find all comments by post id in descending order of created at.
+   *
    * @param id UUID
    * @return Optional of list of comments
    */
   public Optional<List<Comment>> findByPostIdOrderByCreatedAtDesc(UUID id);
+
   /**
    * Find all comments by post id in descending order of created at.
-   * @param id UUID
+   *
+   * @param id       UUID
    * @param pageable Pageable
    * @return Optional of list of comments
    */
   public Optional<List<Comment>> findByPostIdOrderByCreatedAtDesc(UUID id, Pageable pageable);
+
   /**
    * Find all comments by post id.
+   *
    * @param id UUID
    * @return Optional of list of comments
    */

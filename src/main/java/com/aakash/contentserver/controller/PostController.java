@@ -1,6 +1,5 @@
 package com.aakash.contentserver.controller;
 
-import com.aakash.contentserver.configuration.CacheControlConfig;
 import com.aakash.contentserver.dto.PostDTO;
 import com.aakash.contentserver.exceptions.BadRequestException;
 import com.aakash.contentserver.exceptions.ContentServerException;
@@ -26,7 +25,6 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * PostController class. This class can be used to handle post entity requests.
-
  */
 @RestController
 @RequestMapping("/v1/posts")
@@ -35,19 +33,23 @@ public class PostController {
   private final PostService postService;
   private final PagedResourcesAssembler<PostDTO> pagedResourcesAssembler;
   private final ImageProcessor imageProcessor;
+  private final CacheControl cacheControl;
 
 
   public PostController(PostService postService, PagedResourcesAssembler<PostDTO> pagedResourcesAssembler,
-                        ImageProcessor imageProcessor) {
+                        ImageProcessor imageProcessor, CacheControl cacheControl) {
     this.postService = postService;
     this.pagedResourcesAssembler = pagedResourcesAssembler;
     this.imageProcessor = imageProcessor;
+    this.cacheControl = cacheControl;
   }
 
   /**
    * Controller to create a post with image,caption and creator.The immediate response returned doesn't have the iamge url.
+   * The Location header in response will have the url to access the entity.
    * Do a GET request on the postId to get the image url in the PostDTO
-   * @param file Image file.
+   *
+   * @param file    Image file.
    * @param caption Caption for the post.
    * @param creator Creator of the post.
    * @return PostDTO.
@@ -67,41 +69,51 @@ public class PostController {
         .path("/{id}")
         .buildAndExpand(postDTO.getId())
         .toUri();
-    return ResponseEntity.created(location).body(postDTO);
+    return ResponseEntity
+        .created(location)
+        .body(postDTO);
   }
 
   /**
    * Controller to get a post based on the postId.
+   *
    * @param postId PostId.
-   * @return  PostDTO.
+   * @return PostDTO.
    */
   @GetMapping("/{postId}")
   public ResponseEntity<PostDTO> getPost(@PathVariable String postId) {
     PostDTO savedPost = postService.getPost(postId);
-    return ResponseEntity.status(HttpStatus.OK).cacheControl(CacheControl.maxAge(5, TimeUnit.SECONDS)).body(savedPost);
+    return ResponseEntity
+        .status(HttpStatus.OK)
+        .cacheControl(cacheControl)
+        .body(savedPost);
   }
 
   /**
    * Controller to update the caption of a post.
-   * @param postId PostId.
+   *
+   * @param postId  PostId.
    * @param caption Caption.
    * @return PostDTO.
    */
   @PutMapping("/{postId}")
   public ResponseEntity<PostDTO> updatePost(@PathVariable String postId, @RequestParam("caption") String caption) {
     PostDTO updatedPost = postService.updatePost(UUID.fromString(postId), caption);
-    return ResponseEntity.status(HttpStatus.OK).cacheControl(CacheControl.maxAge(5, TimeUnit.SECONDS)).body(updatedPost);
+    return ResponseEntity
+        .status(HttpStatus.OK)
+        .cacheControl(cacheControl).body(updatedPost);
   }
 
   /**
    * Controller to get the top posts based on the number of comments.
+   *
    * @param page Page number.
    * @param size Number of posts to fetch.
-   * @return  PagedModel of PostDTO.
+   * @return PagedModel of PostDTO.
    */
   @GetMapping
-  public PagedModel<EntityModel<PostDTO>> getTopPosts(@RequestParam(defaultValue = "0") int page,
-                                                      @RequestParam(defaultValue = "10") int size) {
+  public ResponseEntity<PagedModel<EntityModel<PostDTO>>> getTopPosts(@RequestParam(defaultValue = "0") int page,
+                                                                      @RequestParam(defaultValue = "10") int size) {
     Pageable pageable = PageRequest.of(page, size);
     Page<PostDTO> allPosts = postService.getTopPosts(pageable);
     PagedModel<EntityModel<PostDTO>> pagedModel = pagedResourcesAssembler.toModel(allPosts);
@@ -120,18 +132,21 @@ public class PostController {
               .withRel("previous")
       );
     }
-    return pagedModel;
+    return ResponseEntity.ok()
+        .cacheControl(cacheControl)
+        .body(pagedModel);
   }
 
   /**
    * Method to get all created posts.
+   *
    * @param page Page number.
    * @param size Number of posts to fetch.
    * @return PagedModel of PostDTO.
    */
   @GetMapping("/all")
-  public PagedModel<EntityModel<PostDTO>> getAllPosts(@RequestParam(defaultValue = "0") int page,
-                                                      @RequestParam(defaultValue = "10") int size) {
+  public ResponseEntity<PagedModel<EntityModel<PostDTO>>> getAllPosts(@RequestParam(defaultValue = "0") int page,
+                                                                      @RequestParam(defaultValue = "10") int size) {
     Pageable pageable = PageRequest.of(page, size);
     Page<PostDTO> allPosts = postService.getAllPosts(pageable);
     PagedModel<EntityModel<PostDTO>> pagedModel = pagedResourcesAssembler.toModel(allPosts);
@@ -150,17 +165,23 @@ public class PostController {
               .withRel("previous")
       );
     }
-    return pagedModel;
+    return ResponseEntity.ok()
+        .cacheControl(cacheControl)
+        .body(pagedModel);
   }
 
   /**
    * Controller to get all comments for a post.
+   *
    * @param postId PostId.
    * @return PostDTO.
    */
   @GetMapping("/{postId}/comments")
   public ResponseEntity<PostDTO> getAllCommentsForAPost(@PathVariable String postId) {
     PostDTO savedPost = postService.getCommentsForAPost(postId);
-    return ResponseEntity.status(HttpStatus.OK).cacheControl(CacheControl.maxAge(5, TimeUnit.SECONDS)).body(savedPost);
+    return ResponseEntity
+        .status(HttpStatus.OK).
+        cacheControl(cacheControl)
+        .body(savedPost);
   }
 }

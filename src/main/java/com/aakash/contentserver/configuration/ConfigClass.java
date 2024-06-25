@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.http.CacheControl;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.AwsClient;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 import java.time.Clock;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static reactor.core.publisher.Mono.when;
@@ -40,6 +42,7 @@ public class ConfigClass {
   /**
    * Method to create a ModelMapper bean.
    * The ModelMapper is used to map between different entities and DTOs.
+   *
    * @return ModelMapper
    */
   @Bean
@@ -65,6 +68,7 @@ public class ConfigClass {
 
   /**
    * Jakarta Validation bean to validate the request body against the entity constraints.
+   *
    * @return Validator
    */
   @Bean
@@ -77,6 +81,7 @@ public class ConfigClass {
    * The ObjectMapper is used to serialize and deserialize the objects.
    * The ObjectMapper is configured to indent the output and serialize the dates as ISO-8601.
    * The ObjectMapper is also configured to serialize the dates as ISO-8601.
+   *
    * @return ObjectMapper
    */
   @Bean
@@ -91,6 +96,7 @@ public class ConfigClass {
   /**
    * Method to create a Clock bean.
    * The Clock is used to get the current time in the UTC timezone.
+   *
    * @return
    */
   @Bean
@@ -101,6 +107,7 @@ public class ConfigClass {
   /**
    * Method to create a S3Client bean.
    * The S3Client is used to interact with the AWS S3 service.
+   *
    * @return
    */
   @Bean
@@ -110,4 +117,8 @@ public class ConfigClass {
         .build();
   }
 
+  @Bean
+  CacheControl getCacheControl() {
+    return CacheControl.maxAge(5, TimeUnit.SECONDS).cachePublic();
+  }
 }

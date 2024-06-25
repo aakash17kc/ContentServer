@@ -7,6 +7,7 @@ import com.aakash.contentserver.dto.CommentDTO;
 import com.aakash.contentserver.dto.ImageDTO;
 import com.aakash.contentserver.dto.PostDTO;
 import com.aakash.contentserver.entities.Comment;
+import com.aakash.contentserver.entities.FileType;
 import com.aakash.contentserver.entities.Image;
 import com.aakash.contentserver.entities.Post;
 import com.aakash.contentserver.enums.ActivityType;
@@ -106,6 +107,7 @@ public class PostService extends ContentService<PostDTO> {
    * @param activityType The type of activity for which the image is being uploaded
    */
   private void processImageUploadForPost(UUID postId, MultipartFile file, long fileSize, ActivityType activityType) {
+    // Can make use of builder pattern of needed
     Image image = new Image();
     image.setId(UUID.randomUUID());
     image.setSizeInKB(fileSize / 1000);
@@ -293,7 +295,7 @@ public class PostService extends ContentService<PostDTO> {
   }
 
   private void addCommentsDTOToPost(PostDTO postDTO, Optional<List<Comment>> postComments) {
-    if(postComments.isPresent()) {
+    if (postComments.isPresent()) {
       List<CommentDTO> commentDTOList = new ArrayList<>();
       postComments.get().forEach(comment -> {
         CommentDTO commentDTO = modelMapper.map(comment, CommentDTO.class);

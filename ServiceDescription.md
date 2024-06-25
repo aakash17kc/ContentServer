@@ -24,6 +24,8 @@
     * CommentService - Service class for handling Comment entity
   * FileTypeService
     * ImageService - Service class for handling Image entity
+
+#### API Endpoints
 * Controllers
   * PostController - Controller class that provides APIs for Post entity
     * baseUrl: /v1
@@ -42,7 +44,7 @@
       * The image can be accessed by the link in the response
       * API returns 200  on successful get.
       * ![Optional Image Alt Text](src/main/resources/images/post_create.png)
-    * **/posts** curl --location 'localhost:8080/v1/posts'
+    * **/posts** curl --location --request GET 'localhost:8080/v1/posts'
       * Returns all the posts sorted by comments count desc with the last 2 comments.
       * The response has cursor based pagination. Navigation links are provided in the response.
       * ![Optional Image Alt Text](src/main/resources/images/get_all_posts.png)
@@ -50,13 +52,13 @@
     * **/posts/{postId}** -curl --location --request PUT 'localhost:8080/v1/posts/1/comments?caption=updated'
       * Updates the caption of the post
       * creator cannot be updated
-    * **/posts/{postId}/comments** -curl --location --request GET 'localhost:8080/v1/posts/1/comments' \
-      --form 'content="zenitsu"' \
-      --form 'creator="aakash"'
+    * **/posts/{postId}/comments** -curl --location --request GET 'localhost:8080/v1/posts/1/comments'
       * Gets all comments for the post.
+    * **/posts/all** -curl --location --request GET 'localhost:8080/v1/posts/all' \
+      * Gets all created posts. 10 posts per page.
   * CommentController
     * baseUrl: /v1
-      * **/comments** curl --location 'localhost:8080/v1/comment?postId=b05d953e-77cc-4b0e-966a-f89b36a69547' \
+      * **/comments** curl --location 'localhost:8080/v1/comment?postId=b05d953e-77cc-4b0e-966a-f89b36a69547'
         --header 'Content-Type: application/json' \
         --data '{
         "content" :"i have to work now",
@@ -76,6 +78,6 @@
     * baseUrl: /v1
       * **/images/{imageId}** -curl --location --request GET 'localhost:8080/v1/images/1'
         * Returns the image with the imageId
-      * **images/{imagesId}/content** -curl --location --request GET 'localhost:8080/v1/images/1/content'
+      * **/images/{imagesId}/content** -curl --location --request GET 'localhost:8080/v1/images/1/content'
         * Returns a byte array of the image. Hit the api in Postman/Browser to see the image.
         * ![Optional Image Alt Text](src/main/resources/images/image.png)

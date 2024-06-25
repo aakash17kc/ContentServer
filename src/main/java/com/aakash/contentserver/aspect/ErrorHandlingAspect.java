@@ -12,6 +12,7 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -92,5 +93,11 @@ public class ErrorHandlingAspect {
   @ExceptionHandler(RateLimitException.class)
   public ResponseEntity<String> handleRateLimitException(RateLimitException ex) {
     return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).contentType(MediaType.APPLICATION_JSON).body(JsonUtils.getErrorBody(ex.getMessage()));
+  }
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  public ResponseEntity<String> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(JsonUtils.getErrorBody("Invalid request body. Please refer to the ServiceDescription.md"));
   }
 }

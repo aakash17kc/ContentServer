@@ -1,7 +1,15 @@
 
 ## Details on how to ship on Production.
-### Image Processsing Logic
-* The Image processing logic can be part of a different service altogether that can be scaled independently.
+
+I've mentioned some of the points that can be considered to ship the service to production. There can be additional
+configurations and setups that can be done based on the requirements.
+
+These are the steps I would take to ship the service to production and for it to be able to serve larger number of requests.
+Some of the changes can be made in the code, for example the image processing logic can be moved to a different service.
+Other suggestions are related to infrastructure, database, security, monitoring, and other production aspects.
+
+### Image Processing Logic
+* The Image processing logic can be part of a different service altogether, that can be scaled independently.
     * We can implement event-driver architecture using Kafka Topics/AWS SNS/AWS SQS to communicate between services.
     * The flow would be as below
         * User invokes /post
@@ -9,11 +17,9 @@
         * The ImageProcessing service listens to the Kafka Topic A, gets the file urls from the topic, processes the image and uploads to S3.
         * After completion, the ImageProcessing service publishes the processed image url to another Kafka Topic B, on which the ContentServer has subscribed
         * The ContentServer receives the event and updates the post entity with the processed image url.
-        * The post can then be shown to the user with the processed image. For this, the uesr can send an even to the Feed service, that adds the post to the feed.
+        * The post can then be shown to the user with the processed image. For this, the ContentServer can send an event to the FeedService, that adds the post to the user feed.
 * We can also use a third party service like Cloudinary to process the images.
 * We can use a CDN to cache the images and serve them faster to the user.
-* If not using Spring, we'll have to setup factory methods to create the instances for different services.
-
 
 ### Security
 * We need to integrate TLS/SSL to upgrade the server to HTTPS for secure communication.
@@ -41,7 +47,7 @@
 * We can integrate SonarQube in our CI/CR for code quality checks during PRs.
 * We can use Jacoco for code coverage.
 * We can use Gatling for performance testing.
-* We can setup Karate for Integration testing of APIs end to end. We can create a new module inside this repo to have all itegration tests
+* We can setup Karate for Integration testing of APIs end to end. We can create a new module inside this repo to have all integration tests
 * We can use WireMock for mocking external services.
 
 ### Scalability, Availability and Performance
@@ -56,7 +62,10 @@
 * We can implement event-driven flow for async cross service communication.
 
 ### Deployment and CI/CD
-* We can use Jenkins/TravisCI/CircleCI for CI/CD. I've created a sample Jenkinsfile for the pipeline.
+* We should maintain different configurations for different environments like Dev, QA, Staging, Prod.
+* We can integrate vault into our helm charts to populate sensitive creds during deployment. It can be used as a init container
+  when the service deployment starts.
+* We can use Jenkins/TravisCI/CircleCI for CI/CD. I've created just a sample Jenkinsfile for the pipeline.
 * We can use Docker for containerization. I've added a simple Dockerfile to create an image.
 * We can use Kubernetes for orchestration.
 * We can use Helm for package management. I've added a sample helm chart that will deploy the service.
@@ -94,8 +103,6 @@
 * We can have a DR plan in place to handle disasters. For example, if there is AWS outage in a region, we can bring our services up in another region.
 * We should have DR mock drills every few months to make sure the DR plan works.
 
-
-
 ### Cost Optimization
 * We can use AWS Cost Explorer to track the costs.
 * We can schedule jobs to cleanup the original uploaded images after a certain period of time.
@@ -103,6 +110,7 @@
 
 ### Compliance
 * Since we're storing a lot of user data, we need to be GDPR compliant. We can use AWS services like AWS KMS for encryption.
+
 ### Documentation
 * We can use OpenAPI for API documentation. I've added a sample api.yaml file for the /post endpoint.
 * Any new code that we add should have proper documentation. This can be part of the Story/Task that is assigned to the developer.

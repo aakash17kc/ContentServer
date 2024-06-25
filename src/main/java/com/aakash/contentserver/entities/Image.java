@@ -23,5 +23,4 @@ public class Image extends FileType {
     this.postId = postId;
   }
 
-
 }
