@@ -1,7 +1,8 @@
 # Content Server 
 
 ### Reference Documentation
-
+* Please refer to [Production.md](Production.md) for the details about what should be done in order to ship it on production
+* Please refer to [ServiceDescription.md](ServiceDescription.md) for the details class hierarchy and API endpoints.
 * This project is a Spring Boot application that uses the following technologies:
   * Java 21 
   * Spring Boot 3.3.1
