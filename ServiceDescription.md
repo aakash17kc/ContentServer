@@ -18,6 +18,15 @@
     * CommentRepository - CRUD repo for Comment entity
   * FileTypeRepository - parent interface for FileType entity
     * ImageRepository - CRUD repo for Image entity
+* Interfaces
+  * ImageFunctions -
+    * ImageFunctionsImpl - Implementation of ImageFunctions
+  * FileSupportedType - Interface to provide supported file types
+    * ImageSupportedType - Implementation of FileSupportedTypes
+  * ImageResizeConfiguration - Interface to provide image resize configuration
+    * ImageResizeConfigurationImpl - Implementation of ImageResizeConfiguration
+  * S3Processor - Interface to provide S3 operations
+    * S3ProcessorImpl - Implementation of S3Processor
 * Services
   * ContentService - parent class for PostService and CommentService containing common beans
     * PostService - Service class for handling Post entity

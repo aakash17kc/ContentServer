@@ -2,15 +2,12 @@ package com.aakash.contentserver.aspect;
 
 
 import com.aakash.contentserver.configuration.ApiError;
-import com.aakash.contentserver.controller.PostController;
 import com.aakash.contentserver.exceptions.*;
 import com.aakash.contentserver.utils.JsonUtils;
-import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -29,7 +26,10 @@ public class ErrorHandlingAspect {
    */
   @ExceptionHandler(BadRequestException.class)
   public ResponseEntity<String> handleServiceException(BadRequestException ex) {
-    return ResponseEntity.badRequest().contentType(MediaType.APPLICATION_JSON).body(JsonUtils.getErrorBody(ex.getMessage()));
+    return ResponseEntity
+        .badRequest()
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(JsonUtils.getErrorBody(ex.getMessage()));
   }
 
   /**
@@ -41,7 +41,10 @@ public class ErrorHandlingAspect {
   @ExceptionHandler(ContentServerException.class)
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   public ResponseEntity<String> handleContentServerException(ContentServerException ex) {
-    return ResponseEntity.internalServerError().contentType(MediaType.APPLICATION_JSON).body(JsonUtils.getErrorBody(ex.getMessage()));
+    return ResponseEntity
+        .internalServerError()
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(JsonUtils.getErrorBody(ex.getMessage()));
   }
 
   /**
@@ -54,7 +57,10 @@ public class ErrorHandlingAspect {
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public ResponseEntity<String> handleMultipartException(MultipartException ex) {
     String exceptionMessage = JsonUtils.getErrorBody(String.format("Image is required to create a post %s", ex.getMessage()));
-    return ResponseEntity.badRequest().contentType(MediaType.APPLICATION_JSON).body(JsonUtils.getErrorBody(exceptionMessage));
+    return ResponseEntity
+        .badRequest()
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(JsonUtils.getErrorBody(exceptionMessage));
   }
 
   /**
@@ -79,7 +85,10 @@ public class ErrorHandlingAspect {
    */
   @ExceptionHandler(EntityNotFoundException.class)
   public ResponseEntity<String> handleEntityNotFoundExceptions(EntityNotFoundException ex) {
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(JsonUtils.getErrorBody(ex.getMessage()));
+    return ResponseEntity
+        .status(HttpStatus.NOT_FOUND)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(JsonUtils.getErrorBody(ex.getMessage()));
   }
 
   /**
@@ -89,7 +98,10 @@ public class ErrorHandlingAspect {
    */
   @ExceptionHandler(RateLimitException.class)
   public ResponseEntity<String> handleRateLimitException(RateLimitException ex) {
-    return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).contentType(MediaType.APPLICATION_JSON).body(JsonUtils.getErrorBody(ex.getMessage()));
+    return ResponseEntity
+        .status(HttpStatus.TOO_MANY_REQUESTS)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(JsonUtils.getErrorBody(ex.getMessage()));
   }
   @ExceptionHandler(HttpMessageNotReadableException.class)
   public ResponseEntity<String> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
@@ -99,6 +111,9 @@ public class ErrorHandlingAspect {
   }
   @ExceptionHandler(EntityNotValidException.class)
   public ResponseEntity<String> handleEntityNotValidException(EntityNotValidException ex) {
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(ex.getMessage());
+    return ResponseEntity
+        .status(HttpStatus.BAD_REQUEST)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(ex.getMessage());
   }
 }

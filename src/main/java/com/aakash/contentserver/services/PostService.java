@@ -6,7 +6,10 @@ import com.aakash.contentserver.constants.S3Constants;
 import com.aakash.contentserver.dto.CommentDTO;
 import com.aakash.contentserver.dto.ImageDTO;
 import com.aakash.contentserver.dto.PostDTO;
-import com.aakash.contentserver.entities.*;
+import com.aakash.contentserver.entities.Comment;
+import com.aakash.contentserver.entities.FileType;
+import com.aakash.contentserver.entities.Image;
+import com.aakash.contentserver.entities.Post;
 import com.aakash.contentserver.enums.ActivityType;
 import com.aakash.contentserver.enums.ImageType;
 import com.aakash.contentserver.exceptions.*;
@@ -37,7 +40,10 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Clock;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static com.aakash.contentserver.constants.CommonConstants.NUMBER_OF_COMMENTS_PER_POST;
 import static com.aakash.contentserver.constants.CommonConstants.UPLOAD_DIR;
@@ -119,8 +125,8 @@ public class PostService extends ContentService<PostDTO> {
     Image image = new Image();
     image.setSizeInKB(fileSize / 1000);
     image.setPostId(postId);
+    setFileProperties(image, ImageType.JPG.getValue());
     image.setAccessUri(ImageConstants.ACCESS_URI + image.getId() + ImageConstants.CONTENT_ENDPOINT);
-    getFileTypeEntity(image,ImageType.JPG.getValue());
     String destinationFileName = ImageConstants.COMPRESSED_LOCATION + "/compressed-" +
         image.getPostId() + "." + ImageType.JPG.getValue().toLowerCase();
     image.setLocation(destinationFileName);
@@ -129,7 +135,7 @@ public class PostService extends ContentService<PostDTO> {
       imageProcessor.resizeImageAndUploadToS3(filePath, image, activityType);
       ImageDTO savedImage = imageService.saveImage(image);
       logger.info("Image saved to db successfully for postId: " + postId);
-
+      
       updateImageInPost(postId, UUID.fromString(savedImage.getId()), image.getAccessUri());
       logger.info(String.format("Post updated with imageId %s for postId: %s", savedImage.getId(), postId));
     } catch (IOException e) {
@@ -140,14 +146,14 @@ public class PostService extends ContentService<PostDTO> {
       throw new ContentServerException(e.getMessage(), e);
     }
   }
-  // Can make use of builder pattern if needed
-  private <T extends FileType> void getFileTypeEntity(T file, String type) {
+  
+  private <T extends FileType> void setFileProperties(T file, String type) {
     file.setId(UUID.randomUUID());
     file.setType(type);
     file.setCreatedAt(Instant.now(clock));
     file.setBucketName(S3Constants.BUCKET_NAME);
   }
-
+  
   /**
    * Method to get a post by id.
    *

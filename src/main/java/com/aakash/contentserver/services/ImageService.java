@@ -7,9 +7,6 @@ import com.aakash.contentserver.exceptions.EntityNotFoundException;
 import com.aakash.contentserver.processors.ImageProcessor;
 import com.aakash.contentserver.repositories.ImageRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.ratelimiter.RequestNotPermitted;
-import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -22,12 +19,12 @@ import java.util.UUID;
 
 /**
  * Service class for Image entity related operations.
-
  */
 @Service
 public class ImageService extends BackendService {
   private final ImageRepository imageRepository;
   private final ImageProcessor imageProcessor;
+  
   @Autowired
   public ImageService(CircuitBreakerConfiguration circuitBreakerConfig, ModelMapper modelMapper, Clock clock,
                       MongoTemplate mongoTemplate, ImageRepository imageRepository, ObjectMapper objectMapper, ImageProcessor imageProcessor) {
@@ -35,9 +32,10 @@ public class ImageService extends BackendService {
     this.imageRepository = imageRepository;
     this.imageProcessor = imageProcessor;
   }
-
+  
   /**
    * Method to save the image entity to DB
+   *
    * @param image The image entity
    * @return The saved image entity
    */
@@ -45,13 +43,14 @@ public class ImageService extends BackendService {
     Image savedImage = imageRepository.save(image);
     return modelMapper.map(savedImage, ImageDTO.class);
   }
-
+  
   /**
    * Method to get the image entity from DB
+   *
    * @param imageId The image id
    * @return The image entity
    */
-
+  
   public ImageDTO getImage(String imageId) {
     Optional<Image> image = imageRepository.findById(UUID.fromString(imageId));
     if (image.isEmpty()) {
@@ -59,9 +58,10 @@ public class ImageService extends BackendService {
     }
     return modelMapper.map(image, ImageDTO.class);
   }
-
+  
   /**
    * Method to get the image content from S3 as byte stream.
+   *
    * @param imageId The image id
    * @return The image content as byte stream
    * @throws IOException If there is an error in downloading the image from S3
@@ -73,5 +73,5 @@ public class ImageService extends BackendService {
     }
     return imageProcessor.downloadImageFromS3(image.get());
   }
-
+  
 }
