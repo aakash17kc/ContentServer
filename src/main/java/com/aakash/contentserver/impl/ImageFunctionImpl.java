@@ -2,11 +2,15 @@ package com.aakash.contentserver.impl;
 
 import com.aakash.contentserver.interfaces.ImageFunctions;
 import net.coobird.thumbnailator.Thumbnails;
+import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 @Service
 public class ImageFunctionImpl implements ImageFunctions {
@@ -15,9 +19,9 @@ public class ImageFunctionImpl implements ImageFunctions {
   }
 
   @Override
-  public ByteArrayOutputStream resizeImage(MultipartFile file, int width, int height, String outputFormat) throws IOException {
+  public ByteArrayOutputStream resizeImage(File filePath, int width, int height, String outputFormat) throws IOException {
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    Thumbnails.of(file.getInputStream())
+    Thumbnails.of(FileUtils.openInputStream(filePath))
         .size(width, height)
         .outputFormat(outputFormat)
         .toOutputStream(outputStream);
@@ -25,10 +29,10 @@ public class ImageFunctionImpl implements ImageFunctions {
   }
 
   @Override
-  public ByteArrayOutputStream compressImage(MultipartFile file, float quality, String outputFormat) throws IOException {
+  public ByteArrayOutputStream compressImage(File filePath, float quality, String outputFormat) throws IOException {
 
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    Thumbnails.of(file.getInputStream())
+    Thumbnails.of(FileUtils.openInputStream(filePath))
         .outputFormat(outputFormat)
         .outputQuality(quality)
         .toOutputStream(outputStream);
@@ -36,9 +40,9 @@ public class ImageFunctionImpl implements ImageFunctions {
   }
 
   @Override
-  public ByteArrayOutputStream scaleImage(MultipartFile file, double scaleFactor, String outputFormat) throws IOException {
+  public ByteArrayOutputStream scaleImage(File filePath, double scaleFactor, String outputFormat) throws IOException {
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    Thumbnails.of(file.getInputStream())
+    Thumbnails.of(FileUtils.openInputStream(filePath))
         .outputFormat(outputFormat)
         .scale(scaleFactor)
         .toOutputStream(outputStream);

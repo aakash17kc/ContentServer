@@ -32,15 +32,13 @@ public class PostController {
   private final PostService postService;
   private final PagedResourcesAssembler<PostDTO> pagedResourcesAssembler;
   private final ImageProcessor imageProcessor;
-  private final CacheControl cacheControl;
-
 
   public PostController(PostService postService, PagedResourcesAssembler<PostDTO> pagedResourcesAssembler,
-                        ImageProcessor imageProcessor, CacheControl cacheControl) {
+                        ImageProcessor imageProcessor) {
     this.postService = postService;
     this.pagedResourcesAssembler = pagedResourcesAssembler;
     this.imageProcessor = imageProcessor;
-    this.cacheControl = cacheControl;
+
   }
 
   /**
@@ -83,8 +81,7 @@ public class PostController {
   public ResponseEntity<PostDTO> getPost(@PathVariable String postId) {
     PostDTO savedPost = postService.getPost(postId);
     return ResponseEntity
-        .status(HttpStatus.OK)
-        .cacheControl(cacheControl)
+        .ok()
         .body(savedPost);
   }
 
@@ -99,8 +96,8 @@ public class PostController {
   public ResponseEntity<PostDTO> updatePost(@PathVariable String postId, @RequestParam("caption") String caption) {
     PostDTO updatedPost = postService.updatePost(UUID.fromString(postId), caption);
     return ResponseEntity
-        .status(HttpStatus.OK)
-        .cacheControl(cacheControl).body(updatedPost);
+        .ok()
+        .body(updatedPost);
   }
 
   /**
@@ -131,8 +128,8 @@ public class PostController {
               .withRel("previous")
       );
     }
-    return ResponseEntity.ok()
-        .cacheControl(cacheControl)
+    return ResponseEntity
+        .ok()
         .body(pagedModel);
   }
 
@@ -165,7 +162,6 @@ public class PostController {
       );
     }
     return ResponseEntity.ok()
-        .cacheControl(cacheControl)
         .body(pagedModel);
   }
 
@@ -179,8 +175,7 @@ public class PostController {
   public ResponseEntity<PostDTO> getAllCommentsForAPost(@PathVariable String postId) {
     PostDTO savedPost = postService.getAllCommentsForAPost(postId);
     return ResponseEntity
-        .status(HttpStatus.OK).
-        cacheControl(cacheControl)
+        .ok()
         .body(savedPost);
   }
 }

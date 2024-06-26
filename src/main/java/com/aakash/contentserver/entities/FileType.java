@@ -10,7 +10,7 @@ import java.util.UUID;
  * FileType entity. This class acts as a super class for file type entities.
  * Currently, only Image is the child class of FileType. We can add more types when needed.
  */
-public abstract class FileType {
+public class FileType {
   @Id
   @Indexed
   private UUID id;

@@ -19,12 +19,11 @@ public class LoggingAspect {
       " || within(@org.springframework.stereotype.Component *)")
   public void springBeanPointcut() {}
 
-  @Pointcut("within(com.aakash.contentserver.processors..*)")
-  public void processorsPackagePointcut() {}
-  @AfterThrowing(pointcut = "springBeanPointcut() && processorsPackagePointcut()", throwing = "e")
+  @AfterThrowing(pointcut = "springBeanPointcut()", throwing = "e")
   public void logAfterThrowing(JoinPoint joinPoint, Throwable e) {
     logger.error("Exception in {}.{}() with cause = {}", joinPoint.getSignature().getDeclaringTypeName(),
         joinPoint.getSignature().getName(), e.getCause() != null ? e.getCause() : "NULL", e);
   }
 
 }
+

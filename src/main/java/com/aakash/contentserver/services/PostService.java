@@ -12,7 +12,6 @@ import com.aakash.contentserver.enums.ImageType;
 import com.aakash.contentserver.exceptions.*;
 import com.aakash.contentserver.processors.ImageProcessor;
 import com.aakash.contentserver.repositories.CommentsRepository;
-import com.aakash.contentserver.repositories.ContentRepository;
 import com.aakash.contentserver.repositories.PostRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -23,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,12 +33,14 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.*;
 
 import static com.aakash.contentserver.constants.CommonConstants.NUMBER_OF_COMMENTS_PER_POST;
+import static com.aakash.contentserver.constants.CommonConstants.UPLOAD_DIR;
 
 /**
  * Service class to handle CRUD operations for Post entity.
@@ -54,12 +54,10 @@ public class PostService extends ContentService<PostDTO> {
 
   private final CommentService commentService;
 
-  @Autowired
-  ContentRepository contentRepository;
-
   public PostService(PostRepository postRepository, ModelMapper modelMapper, MongoTemplate mongoTemplate,
                      ObjectMapper objectMapper, Clock clock, CommentsRepository commentsRepository, Validator validator,
-                     ImageProcessor imageProcessor, ImageService imageService, CircuitBreakerConfiguration circuitBreakerConfig, @Lazy CommentService commentService) {
+                     ImageProcessor imageProcessor, ImageService imageService, CircuitBreakerConfiguration circuitBreakerConfig,
+                     @Lazy CommentService commentService) {
     super(circuitBreakerConfig, modelMapper, mongoTemplate, objectMapper, clock, commentsRepository, postRepository, validator);
     this.imageProcessor = imageProcessor;
     this.imageService = imageService;
@@ -109,18 +107,26 @@ public class PostService extends ContentService<PostDTO> {
    * @param activityType The type of activity for which the image is being uploaded
    */
   public void processImageUpload(UUID postId, MultipartFile file, long fileSize, ActivityType activityType) {
-    // Can make use of builder pattern if needed
+
+    File filePath;
+    try {
+      filePath = File.createTempFile(UPLOAD_DIR + postId, "_" + file.getOriginalFilename());
+      // Transfer the contents of the uploaded file to the temporary file
+      file.transferTo(filePath);
+    } catch (IOException e) {
+      throw new ContentServerException("Error while moving uploaded file to temp storage.",e);
+    }
     Image image = new Image();
     image.setSizeInKB(fileSize / 1000);
-    getFileTypeEntity(image);
     image.setPostId(postId);
+    image.setAccessUri(ImageConstants.ACCESS_URI + image.getId() + ImageConstants.CONTENT_ENDPOINT);
+    getFileTypeEntity(image,ImageType.JPG.getValue());
     String destinationFileName = ImageConstants.COMPRESSED_LOCATION + "/compressed-" +
         image.getPostId() + "." + ImageType.JPG.getValue().toLowerCase();
     image.setLocation(destinationFileName);
     try {
-      imageProcessor.uploadOriginalImageToS3(file, image, activityType);
-      imageProcessor.resizeImageAndUploadToS3(file, image, activityType);
-
+      imageProcessor.uploadOriginalImageToS3(filePath, image, activityType);
+      imageProcessor.resizeImageAndUploadToS3(filePath, image, activityType);
       ImageDTO savedImage = imageService.saveImage(image);
       logger.info("Image saved to db successfully for postId: " + postId);
 
@@ -134,13 +140,12 @@ public class PostService extends ContentService<PostDTO> {
       throw new ContentServerException(e.getMessage(), e);
     }
   }
-
-  private <T extends FileType> void getFileTypeEntity(T file) {
+  // Can make use of builder pattern if needed
+  private <T extends FileType> void getFileTypeEntity(T file, String type) {
     file.setId(UUID.randomUUID());
-    file.setType(ImageType.JPG.getValue());
+    file.setType(type);
     file.setCreatedAt(Instant.now(clock));
     file.setBucketName(S3Constants.BUCKET_NAME);
-    file.setAccessUri(ImageConstants.ACCESS_URI + file.getId() + ImageConstants.CONTENT_ENDPOINT);
   }
 
   /**
@@ -225,19 +230,7 @@ public class PostService extends ContentService<PostDTO> {
       throw new BadRequestException(errorMessage);
     }
   }
-//
-//  private void updateImageInComment(UUID commentId, UUID imageId, String accessUri) {
-//    Comment fetchedComment;
-//    try {
-//      fetchedComment = commentService.getComment(commentId.toString());
-//      logger.info("Fetched comment with id: " + commentId);
-//    } catch (Exception e) {
-//      throw new EntityNotFoundException(e.getMessage(), e);
-//    }
-//    if (StringUtils.isNotBlank(accessUri)) fetchedComment.setImageAccessUri(accessUri);
-//    if (StringUtils.isNotBlank(commentId.toString())) fetchedComment.setImageId(imageId);
-//    updateComment(fetchedComment);
-//}
+
 
   /**
    * Method to update a post entity after any changes.
@@ -255,17 +248,6 @@ public class PostService extends ContentService<PostDTO> {
       throw new EntityFailedUpdateException(e.getMessage(), e);
     }
   }
-//
-//  private CommentDTO updateComment(Comment comment) {
-//    try {
-//      CommentDTO savedComment = commentService.saveComment(comment);
-//      logger.info("Comment updated successfully with id: " + comment.getId());
-//      return savedComment;
-//    } catch (Exception e) {
-//      logger.error("Error while updating post with id: " + comment.getId(), e);
-//      throw new EntityFailedUpdateException(e.getMessage(), e);
-//    }
-//  }
 
   /**
    * Method to get the top posts based on the number of comments.
@@ -375,12 +357,12 @@ public class PostService extends ContentService<PostDTO> {
    * In a production environment, the @Async functionality can be achieved using even driven architecture,
    * which will take the load of this service.
    *
-   * @param postId
+   * @param postId The id of the post for which the comment is to be deleted.
    */
   @Async("taskExecutor")
   public void decrementCommentCount(UUID postId) {
     Query query = new Query(Criteria.where("_id").is(postId));
-    Update update = new Update().inc("commentCount", -1);
+    Update update = new Update().inc("commentsCount", -1);
     mongoTemplate.updateFirst(query, update, Post.class);
   }
 
@@ -408,11 +390,23 @@ public class PostService extends ContentService<PostDTO> {
     return new PostDTO();
   }
 
+  /**
+   * Method to handle rate limit fallback for the service.
+   * @param pageable The page request
+   * @param exception The exception thrown
+   * @return Page<PostDTO> The fallback response
+   */
   private Page<PostDTO> localRateLimitFallback(Pageable pageable, RequestNotPermitted exception) {
     circuitBreakerConfig.rateLimitFallback(exception);
     return Page.empty();
   }
 
+  /**
+   * Method to handle circuit breaker fallback for the service.
+   * @param pageable The page request
+   * @param exception The exception thrown
+   * @return Page<PostDTO> The fallback response
+   */
   protected Page<PostDTO> localCircuitBreakerFallback(Pageable pageable, RequestNotPermitted exception) {
     circuitBreakerConfig.circuitBreakerFallback(exception);
     return Page.empty();

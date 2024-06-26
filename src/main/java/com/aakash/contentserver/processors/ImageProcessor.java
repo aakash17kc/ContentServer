@@ -9,6 +9,7 @@ import com.aakash.contentserver.impl.ImageResizeConfigurationImpl;
 import com.aakash.contentserver.impl.ImageSupportedTypeImpl;
 import com.aakash.contentserver.impl.S3ProcessorImpl;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
@@ -16,7 +17,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
  * ImageProcessor class to resize the image and upload to S3.
@@ -58,7 +62,7 @@ public class ImageProcessor {
    * @throws IOException Exception if there is an issue with the file.
    */
   @Async("taskExecutor")
-  public <T extends Image> void resizeImageAndUploadToS3(MultipartFile file, T image, ActivityType activityType) throws IOException {
+  public <T extends Image> void resizeImageAndUploadToS3(File filePath, T image, ActivityType activityType) throws IOException {
 
     // Fetching image configuration for the ActivityType.
     // In this case, it's the post activity.
@@ -70,7 +74,7 @@ public class ImageProcessor {
     String format = getImageFormat(imageConfig);
     String destinationFileName = ImageConstants.COMPRESSED_LOCATION + "/compressed-" + image.getPostId() + "." + format;
     // Resizing the image.
-    ByteArrayOutputStream imageOutputStream = imageFunctionImpl.resizeImage(file, width, height, format);
+    ByteArrayOutputStream imageOutputStream = imageFunctionImpl.resizeImage(filePath, width, height, format);
     // Uploading the image to S3.
     logger.info("Uploading resized image to S3 for postId: {}", image.getPostId());
     s3ProcessorImpl.uploadFileAsByteStream(imageOutputStream.toByteArray(), destinationFileName, image);
@@ -86,12 +90,12 @@ public class ImageProcessor {
    * @throws IOException Exception if there is an issue with the file.
    */
   @Async("taskExecutor")
-  public <T extends Image> void uploadOriginalImageToS3(MultipartFile file, T image, ActivityType activityType) throws IOException {
+  public <T extends Image> void uploadOriginalImageToS3(File filePath, T image, ActivityType activityType) throws IOException {
     logger.info("Uploading original image to S3 for postId: {}", image.getPostId());
     JsonNode imageConfig = getImageConfigurationByActivity(activityType);
     String format = imageConfig.get(ImageConstants.TYPE).asText();
     String destinationFileName = ImageConstants.ORIGINAL_LOCATION + "/original-" + image.getPostId() + "." + format;
-    s3ProcessorImpl.uploadFileAsByteStream(file.getBytes(), destinationFileName, image);
+    s3ProcessorImpl.uploadFileAsByteStream(FileUtils.readFileToByteArray(filePath), destinationFileName, image);
     logger.info("Image uploaded successfully for postId: " + image.getPostId());
   }
 

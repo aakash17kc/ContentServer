@@ -23,11 +23,10 @@ import java.net.URI;
 @RequestMapping("/v1/comments")
 public class CommentsController {
   private final CommentService commentService;
-  private final CacheControl cacheControl;
 
-  public CommentsController(CommentService commentService, CacheControl cacheControl) {
+
+  public CommentsController(CommentService commentService) {
     this.commentService = commentService;
-    this.cacheControl = cacheControl;
   }
 
   /**
@@ -50,7 +49,6 @@ public class CommentsController {
         .toUri();
     return ResponseEntity
         .created(location)
-        .cacheControl(cacheControl)
         .body(savedComment);
   }
 
@@ -67,8 +65,7 @@ public class CommentsController {
 
     CommentDTO fetchedComment = commentService.getCommentDTO(commentId);
     return ResponseEntity
-        .status(HttpStatus.OK)
-        .cacheControl(cacheControl)
+        .ok()
         .body(fetchedComment);
   }
 
@@ -84,10 +81,9 @@ public class CommentsController {
   public ResponseEntity<String> deleteComment(@PathVariable("commentId") String commentId, @RequestParam("creator") String creator)
       throws EntityNotFoundException, ContentServerException {
 
-    String message = commentService.deleteComment(commentId, creator);
+    commentService.deleteComment(commentId, creator);
     return ResponseEntity
-        .status(HttpStatus.NO_CONTENT)
-        .cacheControl(cacheControl)
-        .body(message);
+        .noContent()
+        .build();
   }
 }

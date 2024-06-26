@@ -74,6 +74,7 @@ public class CommentService extends ContentService<CommentDTO> {
     try {
       Comment savedComment = commentsRepository.save(comment);
       postService.incrementCommentCount(savedComment.getPostId());
+      logger.info("Comment saved successfully for post with id {}", postId);
       return modelMapper.map(savedComment, CommentDTO.class);
     } catch (Exception e) {
       throw new ContentServerException("Error while saving comment", e);
@@ -103,6 +104,7 @@ public class CommentService extends ContentService<CommentDTO> {
       throw new ContentServerException("Error while fetching comment", e);
     }
     if (comment.isPresent()) {
+      logger.info("Comment with id {} fetched successfully", commentId);
       return modelMapper.map(comment, CommentDTO.class);
     } else {
       String errorMessage = "Comment with id " + commentId + " doesn't exist.";
@@ -110,31 +112,6 @@ public class CommentService extends ContentService<CommentDTO> {
       throw new EntityNotFoundException(errorMessage);
     }
   }
-//
-//  protected Comment getComment(String commentId) throws EntityNotFoundException, ContentServerException {
-//    Optional<Comment> comment;
-//    try {
-//      comment = commentsRepository.findById(UUID.fromString(commentId));
-//    } catch (Exception e) {
-//      throw new ContentServerException("Error while fetching comment", e);
-//    }
-//    if (comment.isPresent()) {
-//      return comment.get();
-//    } else {
-//      String errorMessage = "Comment with id " + commentId + " doesn't exist.";
-//      logger.error(errorMessage);
-//      throw new EntityNotFoundException(errorMessage);
-//    }
-//  }
-//
-//  protected CommentDTO saveComment(Comment comment) throws ContentServerException {
-//    try {
-//      Comment savedComment = commentsRepository.save(comment);
-//      return modelMapper.map(savedComment, CommentDTO.class);
-//    } catch (Exception e) {
-//      throw new ContentServerException("Error while saving comment", e);
-//    }
-//  }
 
   /**
    * Method to delete a comment
@@ -147,7 +124,7 @@ public class CommentService extends ContentService<CommentDTO> {
    */
   @RateLimiter(name = "rateLimiterAppWide", fallbackMethod = "localRateLimitFallback")
   @CircuitBreaker(name = "circuitBreakerAppWide", fallbackMethod = "localCircuitBreakerFallback")
-  public String deleteComment(String commentId, String creator) throws BadRequestException, EntityNotFoundException {
+  public void deleteComment(String commentId, String creator) throws BadRequestException, EntityNotFoundException {
     Optional<Comment> comment;
     try {
       comment = commentsRepository.findById(UUID.fromString(commentId));
@@ -165,7 +142,6 @@ public class CommentService extends ContentService<CommentDTO> {
       commentsRepository.deleteById(UUID.fromString(commentId));
       logger.info("Comment with id {} deleted successfully", commentId);
       postService.decrementCommentCount(comment.get().getPostId());
-      return "Comment deleted successfully";
     } else {
       String errorMessage = "Comment with id " + commentId + " doesn't exist.";
       logger.error(errorMessage);

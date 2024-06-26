@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.CacheControl;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 import java.time.Clock;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -116,6 +118,11 @@ public class ConfigClass {
         .region(Region.AP_SOUTH_2)
         .build();
   }
+  @Bean
+  AuditorAware<String> auditorProvider() {
+    return () -> Optional.of("Administrator");
+  }
+
 
   @Bean
   CacheControl getCacheControl() {

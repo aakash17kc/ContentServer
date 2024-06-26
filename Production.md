@@ -18,6 +18,7 @@ Typically, a MVP Production ready service would have the below functionalities.
   * Like count, comment count, share count on posts
   * Like counts on Comments
   * Later on, we can add support to multiple images and videos to posts.
+  * CORS support for the frontend 
 
 ### Image Processing Logic
 * The Image processing logic can be part of a different service altogether, that can be scaled independently.
@@ -39,7 +40,7 @@ Typically, a MVP Production ready service would have the below functionalities.
   It can be configured to have Bot Protection, Rate Limiting, etc. We can use AWS API Gateway.
 * To setup an authentication logic in the service to validate user request we can use spring security filter chains.
     * We can integrate a SSO service like Okta to manage the authentication.
-    * For username/password based authentication, we can use signed JWT tokens. The password can be hashed using a library like Bcrypt(adds salt + hash) for secure storage in db.
+    * For username/password based authentication, we can use signed JWT tokens. The password can be hashed using libraries like ByCrypt/Scrypt/Argon2 for secure storage in db.
         * Everytime a user makes a request, we can check the JWT token in the request header and validate it.
         * For the first time, the user can login using username/password and get a JWT token. The token can be stored in the browser's local storage.
         * For subsequent requests, the token can be sent in the header.

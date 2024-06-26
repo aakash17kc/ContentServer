@@ -4,6 +4,7 @@ import com.aakash.contentserver.configuration.CircuitBreakerConfiguration;
 import com.aakash.contentserver.entities.Content;
 import com.aakash.contentserver.exceptions.BadRequestException;
 import com.aakash.contentserver.exceptions.ContentServerException;
+import com.aakash.contentserver.exceptions.EntityNotValidException;
 import com.aakash.contentserver.repositories.CommentsRepository;
 import com.aakash.contentserver.repositories.PostRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -50,7 +51,7 @@ public abstract class ContentService<T> extends BackendService {
                 violation -> violation.getPropertyPath().toString(),
                 ConstraintViolation::getMessage
             ));
-        throw new BadRequestException(objectMapper.writeValueAsString(violationsMap));
+        throw new EntityNotValidException(objectMapper.writeValueAsString(violationsMap));
       } catch (JsonProcessingException e) {
         throw new ContentServerException("Error converting entity violations to string ", e);
       }

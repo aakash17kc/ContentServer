@@ -3,10 +3,7 @@ package com.aakash.contentserver.aspect;
 
 import com.aakash.contentserver.configuration.ApiError;
 import com.aakash.contentserver.controller.PostController;
-import com.aakash.contentserver.exceptions.BadRequestException;
-import com.aakash.contentserver.exceptions.ContentServerException;
-import com.aakash.contentserver.exceptions.EntityNotFoundException;
-import com.aakash.contentserver.exceptions.RateLimitException;
+import com.aakash.contentserver.exceptions.*;
 import com.aakash.contentserver.utils.JsonUtils;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.http.HttpStatus;
@@ -99,5 +96,9 @@ public class ErrorHandlingAspect {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
         .contentType(MediaType.APPLICATION_JSON)
         .body(JsonUtils.getErrorBody("Invalid request body. Please refer to the ServiceDescription.md"));
+  }
+  @ExceptionHandler(EntityNotValidException.class)
+  public ResponseEntity<String> handleEntityNotValidException(EntityNotValidException ex) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(ex.getMessage());
   }
 }

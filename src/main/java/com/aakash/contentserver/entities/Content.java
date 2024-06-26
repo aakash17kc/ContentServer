@@ -12,7 +12,7 @@ import java.util.UUID;
 /**
  * Content entity. This class acts as a super class for content
  */
-public abstract class Content {
+public class Content {
 
   @Id
   @Indexed
@@ -24,7 +24,7 @@ public abstract class Content {
    * In case it's not empty for both cases, we can add @NotNull(message = " ")
    * to validate the if the field is present in the request body.
    */
-  @NotNull(message = "content/caption cannot be null")
+  @NotBlank(message = "content/caption cannot be null")
   private String content;
 
   @NotBlank(message = "creator cannot be empty")
