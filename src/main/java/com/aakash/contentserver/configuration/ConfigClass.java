@@ -7,24 +7,13 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
-import org.apache.tika.Tika;
-import org.modelmapper.Condition;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
-import org.modelmapper.convention.MatchingStrategies;
-import org.modelmapper.spi.MappingContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.CacheControl;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.awscore.AwsClient;
-import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 
@@ -32,9 +21,6 @@ import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
-
-import static reactor.core.publisher.Mono.when;
 
 /**
  * Configuration class to create beans for the application.
@@ -51,11 +37,7 @@ public class ConfigClass {
   public ModelMapper modelMapper() {
     ModelMapper modelMapper = new ModelMapper();
     //Sets Long type to zero incase the source is null.
-    Converter<Long, Long> toNonNullLong = new Converter<Long, Long>() {
-      public Long convert(MappingContext<Long, Long> context) {
-        return context.getSource() == null ? 0L : context.getSource();
-      }
-    };
+    Converter<Long, Long> toNonNullLong = context -> context.getSource() == null ? 0L : context.getSource();
     // Sets the list field to an empty list if the source is null.
     modelMapper.addMappings(new PropertyMap<Post, PostDTO>() {
       @Override
@@ -64,10 +46,10 @@ public class ConfigClass {
       }
     });
     modelMapper.createTypeMap(Long.class, Long.class).setConverter(toNonNullLong);
-
+    
     return modelMapper;
   }
-
+  
   /**
    * Jakarta Validation bean to validate the request body against the entity constraints.
    *
@@ -77,7 +59,7 @@ public class ConfigClass {
   public Validator getValidator() {
     return Validation.buildDefaultValidatorFactory().getValidator();
   }
-
+  
   /**
    * Method to create an ObjectMapper bean.
    * The ObjectMapper is used to serialize and deserialize the objects.
@@ -94,23 +76,23 @@ public class ConfigClass {
     objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     return objectMapper;
   }
-
+  
   /**
    * Method to create a Clock bean.
    * The Clock is used to get the current time in the UTC timezone.
    *
-   * @return
+   * @return Clock bean
    */
   @Bean
   public Clock getClock() {
     return Clock.systemUTC();
   }
-
+  
   /**
    * Method to create a S3Client bean.
    * The S3Client is used to interact with the AWS S3 service.
    *
-   * @return
+   * @return S3Client bean
    */
   @Bean
   public S3Client getS3Client() {
@@ -118,12 +100,12 @@ public class ConfigClass {
         .region(Region.AP_SOUTH_2)
         .build();
   }
+  
   @Bean
   AuditorAware<String> auditorProvider() {
     return () -> Optional.of("Administrator");
   }
-
-
+  
   @Bean
   CacheControl getCacheControl() {
     return CacheControl.maxAge(5, TimeUnit.SECONDS).cachePublic();

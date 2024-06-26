@@ -2,7 +2,6 @@ package com.aakash.contentserver.services;
 
 import com.aakash.contentserver.configuration.CircuitBreakerConfiguration;
 import com.aakash.contentserver.entities.Content;
-import com.aakash.contentserver.exceptions.BadRequestException;
 import com.aakash.contentserver.exceptions.ContentServerException;
 import com.aakash.contentserver.exceptions.EntityNotValidException;
 import com.aakash.contentserver.repositories.CommentsRepository;

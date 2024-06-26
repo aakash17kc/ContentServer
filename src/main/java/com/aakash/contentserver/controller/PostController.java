@@ -12,8 +12,6 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
-import org.springframework.http.CacheControl;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,19 +26,19 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/v1/posts")
 public class PostController {
-
+  
   private final PostService postService;
   private final PagedResourcesAssembler<PostDTO> pagedResourcesAssembler;
   private final ImageProcessor imageProcessor;
-
+  
   public PostController(PostService postService, PagedResourcesAssembler<PostDTO> pagedResourcesAssembler,
                         ImageProcessor imageProcessor) {
     this.postService = postService;
     this.pagedResourcesAssembler = pagedResourcesAssembler;
     this.imageProcessor = imageProcessor;
-
+    
   }
-
+  
   /**
    * Controller to create a post with image,caption and creator.The immediate response returned doesn't have the iamge url.
    * The Location header in response will have the url to access the entity.
@@ -61,7 +59,7 @@ public class PostController {
     PostDTO postDTO;
     imageProcessor.validateSupportedImageType(file);
     postDTO = postService.savePost(caption, creator, file);
-
+    
     URI location = ServletUriComponentsBuilder.fromCurrentRequest()
         .path("/{id}")
         .buildAndExpand(postDTO.getId())
@@ -70,7 +68,7 @@ public class PostController {
         .created(location)
         .body(postDTO);
   }
-
+  
   /**
    * Controller to get a post based on the postId.
    *
@@ -84,7 +82,7 @@ public class PostController {
         .ok()
         .body(savedPost);
   }
-
+  
   /**
    * Controller to update the caption of a post.
    *
@@ -99,7 +97,7 @@ public class PostController {
         .ok()
         .body(updatedPost);
   }
-
+  
   /**
    * Controller to get the top posts based on the number of comments.
    *
@@ -113,7 +111,7 @@ public class PostController {
     Pageable pageable = PageRequest.of(page, size);
     Page<PostDTO> allPosts = postService.getTopPosts(pageable);
     PagedModel<EntityModel<PostDTO>> pagedModel = pagedResourcesAssembler.toModel(allPosts);
-
+    
     pagedModel.add(
         WebMvcLinkBuilder.linkTo(
                 WebMvcLinkBuilder.methodOn(PostController.class)
@@ -132,7 +130,7 @@ public class PostController {
         .ok()
         .body(pagedModel);
   }
-
+  
   /**
    * Method to get all created posts.
    *
@@ -146,7 +144,7 @@ public class PostController {
     Pageable pageable = PageRequest.of(page, size);
     Page<PostDTO> allPosts = postService.getAllPosts(pageable);
     PagedModel<EntityModel<PostDTO>> pagedModel = pagedResourcesAssembler.toModel(allPosts);
-
+    
     pagedModel.add(
         WebMvcLinkBuilder.linkTo(
                 WebMvcLinkBuilder.methodOn(PostController.class)
@@ -164,7 +162,7 @@ public class PostController {
     return ResponseEntity.ok()
         .body(pagedModel);
   }
-
+  
   /**
    * Controller to get all comments for a post.
    *

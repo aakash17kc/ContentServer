@@ -27,9 +27,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.util.*;
-
-import static com.aakash.contentserver.constants.CommonConstants.NUMBER_OF_COMMENTS_PER_POST;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Service class to handle CRUD operations for Comment entity.
@@ -198,7 +198,7 @@ public class CommentService extends ContentService<CommentDTO> {
    * @return List of comments
    */
   public Optional<List<Comment>> getByPostIdOrderByCreatedAtDesc(UUID id, Pageable pageable) {
-    return commentsRepository.findByPostIdOrderByCreatedAtDesc(id, Pageable.ofSize(NUMBER_OF_COMMENTS_PER_POST));
+    return commentsRepository.findByPostIdOrderByCreatedAtDesc(id, pageable);
   }
 
   /**

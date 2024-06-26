@@ -1,25 +1,25 @@
 #### Class Hierarchy
 
 * Entities 
-  * Content - abstract parent class
+  * Content - parent class for Post and Comment entities
     * Post - Used to save post details
     * Comment - Used to save Comment for the post id
-  * FileType -  abstract parent class. Use dto save the file type details
+  * FileType - abstract parent class. Use dto save the file type details
     * Image - Used to save Image entity associated with the post id
 * DTOs
-  * ContentDTO -  abstract parent class
+  * ContentDTO - parent class for PostDTO and CommentDTO
     * PostDTO - Used to map to the Post entity
     * CommentDTO - Used to map to the Comment entity
-  * FileTypeDTO -  abstract parent class
+  * FileTypeDTO - abstract parent class
     * ImageDTO - Used to map to the Image entity
 * Repositories
-  * ContentRepository - interface to provide common functionality for Post and comment entities.
+  * ContentRepository - parent interface to provide common functionality for Post and comment entities.
     * PostRepository - CRUD repo for Post entity
     * CommentRepository - CRUD repo for Comment entity
-  * FileTypeRepository - 
+  * FileTypeRepository - parent interface for FileType entity
     * ImageRepository - CRUD repo for Image entity
 * Services
-  * ContentService 
+  * ContentService - parent class for PostService and CommentService containing common beans
     * PostService - Service class for handling Post entity
     * CommentService - Service class for handling Comment entity
   * FileTypeService
