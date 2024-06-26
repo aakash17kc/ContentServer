@@ -52,8 +52,6 @@ public class S3ProcessorImpl implements S3Processor {
     logger.info("Uploading file to S3: {}", destinationFileName);
     int partSize = ImageConstants.PART_SIZE; // 5 MB chunk
     byte[] buffer = new byte[partSize];
-    fileType.setBucketName(S3Constants.BUCKET_NAME);
-    fileType.setLocation(destinationFileName);
 
     CreateMultipartUploadRequest createMultipartUploadRequest = CreateMultipartUploadRequest.builder()
         .bucket(S3Constants.BUCKET_NAME)
@@ -108,7 +106,11 @@ public class S3ProcessorImpl implements S3Processor {
   }
 
   /**
-   * method to download file from S3.
+   * method to download file from S3 and return as byte array.
+   * For this specific implementation, the file is downloaded into buffer and then returned.
+   * This can cause memory issues if the file is too large or if there are too many concurrent requests.
+   * The memory issues can be solved creating a FileOutputStream of a file location
+   * and writing the file in chunks. Doing so will consume less memory, but more CPU.
    * @param fileType FileType
    * @return byte[]
    * @throws RuntimeException Exception

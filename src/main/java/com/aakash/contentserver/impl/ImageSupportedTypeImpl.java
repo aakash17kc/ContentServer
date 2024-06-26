@@ -25,7 +25,7 @@ public class ImageSupportedTypeImpl implements FileSupportedType {
   public String getType(MultipartFile file) {
     String fileExtension = FilenameUtils.getExtension(file.getOriginalFilename());
     if (!EnumUtils.isValidEnumIgnoreCase(ImageType.class, fileExtension)) {
-      throw new BadRequestException("Only image files with extensions {} are supported " + EnumUtils.getEnumList(ImageType.class));
+      throw new BadRequestException(String.format("Only image files with extensions %s are supported ", EnumUtils.getEnumList(ImageType.class)));
     }
     return fileExtension;
   }

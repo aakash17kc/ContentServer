@@ -32,6 +32,10 @@ public abstract class Content {
   @CreatedDate
   private Instant createdAt;
 
+  private UUID imageId;
+
+  private String imageAccessUri;
+
   public UUID getId() {
     return id;
   }
@@ -64,5 +68,19 @@ public abstract class Content {
     this.createdAt = createdAt;
   }
 
+  public UUID getImageId() {
+    return imageId;
+  }
 
+  public void setImageId(UUID imageId) {
+    this.imageId = imageId;
+  }
+
+  public String getImageAccessUri() {
+    return imageAccessUri;
+  }
+
+  public void setImageAccessUri(String imageAccessUri) {
+    this.imageAccessUri = imageAccessUri;
+  }
 }

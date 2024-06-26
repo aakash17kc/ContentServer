@@ -6,15 +6,13 @@ import com.aakash.contentserver.constants.S3Constants;
 import com.aakash.contentserver.dto.CommentDTO;
 import com.aakash.contentserver.dto.ImageDTO;
 import com.aakash.contentserver.dto.PostDTO;
-import com.aakash.contentserver.entities.Comment;
-import com.aakash.contentserver.entities.FileType;
-import com.aakash.contentserver.entities.Image;
-import com.aakash.contentserver.entities.Post;
+import com.aakash.contentserver.entities.*;
 import com.aakash.contentserver.enums.ActivityType;
 import com.aakash.contentserver.enums.ImageType;
 import com.aakash.contentserver.exceptions.*;
 import com.aakash.contentserver.processors.ImageProcessor;
 import com.aakash.contentserver.repositories.CommentsRepository;
+import com.aakash.contentserver.repositories.ContentRepository;
 import com.aakash.contentserver.repositories.PostRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -25,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -54,6 +53,9 @@ public class PostService extends ContentService<PostDTO> {
   private final ImageService imageService;
 
   private final CommentService commentService;
+
+  @Autowired
+  ContentRepository contentRepository;
 
   public PostService(PostRepository postRepository, ModelMapper modelMapper, MongoTemplate mongoTemplate,
                      ObjectMapper objectMapper, Clock clock, CommentsRepository commentsRepository, Validator validator,
@@ -87,8 +89,8 @@ public class PostService extends ContentService<PostDTO> {
       post.setCommentsCount(0L);
       Post savedPost = postRepository.save(post);
       logger.info("Post saved successfully with id: " + savedPost.getId());
-      processImageUploadForPost(savedPost.getId(), uploadedFile, uploadedFile.getSize(), ActivityType.POST);
-      return getPostToDTO(savedPost);
+      processImageUpload(savedPost.getId(), uploadedFile, uploadedFile.getSize(), ActivityType.POST);
+      return convertToTarget(savedPost, PostDTO.class);
     } catch (Exception e) {
       throw new ContentServerException(e.getMessage(), e);
     }
@@ -106,20 +108,15 @@ public class PostService extends ContentService<PostDTO> {
    * @param fileSize     The size of the image file
    * @param activityType The type of activity for which the image is being uploaded
    */
-  private void processImageUploadForPost(UUID postId, MultipartFile file, long fileSize, ActivityType activityType) {
-    // Can make use of builder pattern of needed
+  public void processImageUpload(UUID postId, MultipartFile file, long fileSize, ActivityType activityType) {
+    // Can make use of builder pattern if needed
     Image image = new Image();
-    image.setId(UUID.randomUUID());
     image.setSizeInKB(fileSize / 1000);
-    image.setCreatedAt(Instant.now(clock));
+    getFileTypeEntity(image);
     image.setPostId(postId);
-    image.setBucketName(S3Constants.BUCKET_NAME);
-    image.setType(ImageType.JPG.getValue());
     String destinationFileName = ImageConstants.COMPRESSED_LOCATION + "/compressed-" +
         image.getPostId() + "." + ImageType.JPG.getValue().toLowerCase();
-    image.setBucketName(S3Constants.BUCKET_NAME);
     image.setLocation(destinationFileName);
-    image.setAccessUri(ImageConstants.ACCESS_URI + image.getId() + ImageConstants.CONTENT_ENDPOINT);
     try {
       imageProcessor.uploadOriginalImageToS3(file, image, activityType);
       imageProcessor.resizeImageAndUploadToS3(file, image, activityType);
@@ -136,6 +133,14 @@ public class PostService extends ContentService<PostDTO> {
       logger.error("Error while saving image for postId: " + postId, e);
       throw new ContentServerException(e.getMessage(), e);
     }
+  }
+
+  private <T extends FileType> void getFileTypeEntity(T file) {
+    file.setId(UUID.randomUUID());
+    file.setType(ImageType.JPG.getValue());
+    file.setCreatedAt(Instant.now(clock));
+    file.setBucketName(S3Constants.BUCKET_NAME);
+    file.setAccessUri(ImageConstants.ACCESS_URI + file.getId() + ImageConstants.CONTENT_ENDPOINT);
   }
 
   /**
@@ -155,8 +160,9 @@ public class PostService extends ContentService<PostDTO> {
     } catch (Exception e) {
       throw new EntityNotFoundException("Post doesn't exist with id " + postId, e);
     }
+
     if (fetchedPost.isPresent()) {
-      return getPostToDTO(fetchedPost.get());
+      return convertToTarget(fetchedPost.get(), PostDTO.class);
     } else {
       String errorMessage = "Post with id: " + postId + " doesn't exist.";
       logger.error(errorMessage);
@@ -181,10 +187,11 @@ public class PostService extends ContentService<PostDTO> {
     } catch (Exception e) {
       throw new EntityNotFoundException(e.getMessage(), e);
     }
+
     if (fetchedPost.isPresent()) {
       Post post = fetchedPost.get();
       if (StringUtils.isNotBlank(caption)) post.setContent(caption);
-      return getUpdatedPostDTO(post);
+      return updatePost(post);
     } else {
       String errorMessage = "Post with id: " + postId + " doesn't exist.";
       logger.error(errorMessage);
@@ -206,17 +213,31 @@ public class PostService extends ContentService<PostDTO> {
     } catch (Exception e) {
       throw new EntityNotFoundException(e.getMessage(), e);
     }
+
     if (fetchedPost.isPresent()) {
       Post post = fetchedPost.get();
       if (StringUtils.isNotBlank(accessUri)) post.setImageAccessUri(accessUri);
       if (StringUtils.isNotBlank(postId.toString())) post.setImageId(imageId);
-      getUpdatedPostDTO(post);
+      updatePost(post);
     } else {
       String errorMessage = "Post with id: " + postId + " doesn't exist.";
       logger.error(errorMessage);
       throw new BadRequestException(errorMessage);
     }
   }
+//
+//  private void updateImageInComment(UUID commentId, UUID imageId, String accessUri) {
+//    Comment fetchedComment;
+//    try {
+//      fetchedComment = commentService.getComment(commentId.toString());
+//      logger.info("Fetched comment with id: " + commentId);
+//    } catch (Exception e) {
+//      throw new EntityNotFoundException(e.getMessage(), e);
+//    }
+//    if (StringUtils.isNotBlank(accessUri)) fetchedComment.setImageAccessUri(accessUri);
+//    if (StringUtils.isNotBlank(commentId.toString())) fetchedComment.setImageId(imageId);
+//    updateComment(fetchedComment);
+//}
 
   /**
    * Method to update a post entity after any changes.
@@ -224,16 +245,27 @@ public class PostService extends ContentService<PostDTO> {
    * @param post The post entity to be updated.
    * @return PostDTO The updated post.
    */
-  private PostDTO getUpdatedPostDTO(Post post) {
+  private PostDTO updatePost(Post post) {
     try {
       Post updatedPost = postRepository.save(post);
       logger.info("Post updated successfully with id: " + post.getId());
-      return getPostToDTO(updatedPost);
+      return convertToTarget(updatedPost, PostDTO.class);
     } catch (Exception e) {
       logger.error("Error while updating post with id: " + post.getId(), e);
       throw new EntityFailedUpdateException(e.getMessage(), e);
     }
   }
+//
+//  private CommentDTO updateComment(Comment comment) {
+//    try {
+//      CommentDTO savedComment = commentService.saveComment(comment);
+//      logger.info("Comment updated successfully with id: " + comment.getId());
+//      return savedComment;
+//    } catch (Exception e) {
+//      logger.error("Error while updating post with id: " + comment.getId(), e);
+//      throw new EntityFailedUpdateException(e.getMessage(), e);
+//    }
+//  }
 
   /**
    * Method to get the top posts based on the number of comments.
@@ -250,7 +282,7 @@ public class PostService extends ContentService<PostDTO> {
   public Page<PostDTO> getTopPosts(Pageable pageable) {
     try {
       Page<Post> allPosts = postRepository.findAllByOrderByCommentsCountDescCreatedAtDesc(pageable);
-      Page<PostDTO> postDTOPage = allPosts.map(this::getPostToDTO);
+      Page<PostDTO> postDTOPage = allPosts.map(post -> convertToTarget(post, PostDTO.class));
       for (PostDTO postDTO : postDTOPage) {
         Optional<List<Comment>> postComments =
             commentService.getByPostIdOrderByCreatedAtDesc(postDTO.getId(), Pageable.ofSize(NUMBER_OF_COMMENTS_PER_POST));
@@ -273,7 +305,7 @@ public class PostService extends ContentService<PostDTO> {
   public Page<PostDTO> getAllPosts(Pageable pageable) {
     try {
       Page<Post> allPosts = postRepository.findAll(pageable);
-      return allPosts.map(this::getPostToDTO);
+      return allPosts.map(post -> convertToTarget(post, PostDTO.class));
     } catch (Exception e) {
       throw new ContentServerException("Error while fetching all posts", e);
     }
@@ -287,13 +319,19 @@ public class PostService extends ContentService<PostDTO> {
    */
   @RateLimiter(name = "rateLimiterAppWide", fallbackMethod = "localRateLimitFallback")
   @CircuitBreaker(name = "circuitBreakerAppWide", fallbackMethod = "localCircuitBreakerFallback")
-  public PostDTO getCommentsForAPost(String postId) {
+  public PostDTO getAllCommentsForAPost(String postId) {
     PostDTO postDTO = getPost(postId);
     Optional<List<Comment>> postComments = commentService.getCommentsByPostId(UUID.fromString(postId));
     addCommentsDTOToPost(postDTO, postComments);
     return postDTO;
   }
 
+  /**
+   * Method to add comments to a post DTO.
+   *
+   * @param postDTO      The post DTO to which the comments are to be added.
+   * @param postComments The comments to be added.
+   */
   private void addCommentsDTOToPost(PostDTO postDTO, Optional<List<Comment>> postComments) {
     if (postComments.isPresent()) {
       List<CommentDTO> commentDTOList = new ArrayList<>();
@@ -307,8 +345,8 @@ public class PostService extends ContentService<PostDTO> {
     }
   }
 
-  private PostDTO getPostToDTO(Post post) {
-    return modelMapper.map(post, PostDTO.class);
+  private <D, T> D convertToTarget(T inClass, Class<D> outClass) {
+    return modelMapper.map(inClass, outClass);
   }
 
   /**

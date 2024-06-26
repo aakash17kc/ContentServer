@@ -61,7 +61,7 @@
 
 ### Non-functional requirements:
   * Maximum response time for any API call except uploading image files - 50 ms
-    * The response time recorded for all APIs on Postman is less than 50 ms, including the upload image API. The image is uploaded asynchronously to S3.
+    * The response time recorded for all APIs on Postman is close to 50 ms, including the upload image API. The image is uploaded asynchronously to S3.
     * Only the API to get the actual image from S3 takes more time as it depends on the file size.
     * ![Optional Image Alt Text](src/main/resources/images/S3.png)
     * For the requirement "I should be able to get the list of all posts along with the last 2 comments on each post", 

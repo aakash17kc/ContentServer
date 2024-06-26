@@ -10,8 +10,10 @@ import java.util.UUID;
  */
 @Document(collection = "images")
 public class Image extends FileType {
-
   private UUID postId;
+
+  private UUID commentId;
+
   public Image() {
   }
 
@@ -23,4 +25,11 @@ public class Image extends FileType {
     this.postId = postId;
   }
 
+  public UUID getCommentId() {
+    return commentId;
+  }
+
+  public void setCommentId(UUID commentId) {
+    this.commentId = commentId;
+  }
 }

@@ -21,7 +21,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 /**
  * PostController class. This class can be used to handle post entity requests.
@@ -178,7 +177,7 @@ public class PostController {
    */
   @GetMapping("/{postId}/comments")
   public ResponseEntity<PostDTO> getAllCommentsForAPost(@PathVariable String postId) {
-    PostDTO savedPost = postService.getCommentsForAPost(postId);
+    PostDTO savedPost = postService.getAllCommentsForAPost(postId);
     return ResponseEntity
         .status(HttpStatus.OK).
         cacheControl(cacheControl)

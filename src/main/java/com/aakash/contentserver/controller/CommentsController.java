@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Controller class for handling comments requests.
@@ -66,7 +65,7 @@ public class CommentsController {
   public ResponseEntity<CommentDTO> getComment(@PathVariable String commentId)
       throws EntityNotFoundException, ContentServerException {
 
-    CommentDTO fetchedComment = commentService.getComment(commentId);
+    CommentDTO fetchedComment = commentService.getCommentDTO(commentId);
     return ResponseEntity
         .status(HttpStatus.OK)
         .cacheControl(cacheControl)
