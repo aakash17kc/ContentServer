@@ -4,6 +4,7 @@ import com.aakash.contentserver.configuration.CircuitBreakerConfiguration;
 import com.aakash.contentserver.dto.CommentDTO;
 import com.aakash.contentserver.dto.PostDTO;
 import com.aakash.contentserver.entities.Comment;
+import com.aakash.contentserver.enums.ActivityType;
 import com.aakash.contentserver.exceptions.BadRequestException;
 import com.aakash.contentserver.exceptions.ContentServerException;
 import com.aakash.contentserver.exceptions.EntityNotFoundException;
@@ -22,6 +23,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -72,10 +74,15 @@ public class CommentService extends ContentService<CommentDTO> {
     try {
       Comment savedComment = commentsRepository.save(comment);
       postService.incrementCommentCount(savedComment.getPostId());
+      logger.info("Comment saved successfully for post with id {}", postId);
       return modelMapper.map(savedComment, CommentDTO.class);
     } catch (Exception e) {
       throw new ContentServerException("Error while saving comment", e);
     }
+  }
+
+  public void processImageUpload(UUID commentId, MultipartFile file, long fileSize, ActivityType activityType) {
+    //TODO: Implement when comments support image uploads.
   }
 
   /**
@@ -89,7 +96,7 @@ public class CommentService extends ContentService<CommentDTO> {
   @RateLimiter(name = "rateLimiterAppWide", fallbackMethod = "localRateLimitFallback")
   @CircuitBreaker(name = "circuitBreakerAppWide", fallbackMethod = "localCircuitBreakerFallback")
 
-  public CommentDTO getComment(String commentId) throws EntityNotFoundException, ContentServerException {
+  public CommentDTO getCommentDTO(String commentId) throws EntityNotFoundException, ContentServerException {
     Optional<Comment> comment;
     try {
       comment = commentsRepository.findById(UUID.fromString(commentId));
@@ -97,6 +104,7 @@ public class CommentService extends ContentService<CommentDTO> {
       throw new ContentServerException("Error while fetching comment", e);
     }
     if (comment.isPresent()) {
+      logger.info("Comment with id {} fetched successfully", commentId);
       return modelMapper.map(comment, CommentDTO.class);
     } else {
       String errorMessage = "Comment with id " + commentId + " doesn't exist.";
@@ -116,7 +124,7 @@ public class CommentService extends ContentService<CommentDTO> {
    */
   @RateLimiter(name = "rateLimiterAppWide", fallbackMethod = "localRateLimitFallback")
   @CircuitBreaker(name = "circuitBreakerAppWide", fallbackMethod = "localCircuitBreakerFallback")
-  public String deleteComment(String commentId, String creator) throws BadRequestException, EntityNotFoundException {
+  public void deleteComment(String commentId, String creator) throws BadRequestException, EntityNotFoundException {
     Optional<Comment> comment;
     try {
       comment = commentsRepository.findById(UUID.fromString(commentId));
@@ -134,7 +142,6 @@ public class CommentService extends ContentService<CommentDTO> {
       commentsRepository.deleteById(UUID.fromString(commentId));
       logger.info("Comment with id {} deleted successfully", commentId);
       postService.decrementCommentCount(comment.get().getPostId());
-      return "Comment deleted successfully";
     } else {
       String errorMessage = "Comment with id " + commentId + " doesn't exist.";
       logger.error(errorMessage);
@@ -174,6 +181,7 @@ public class CommentService extends ContentService<CommentDTO> {
   /**
    * Fallback method for circuit breaker
    * Method argument should be same as the method for which the fallback is defined
+   *
    * @param exception Exception
    * @return CommentDTO
    */
@@ -184,7 +192,8 @@ public class CommentService extends ContentService<CommentDTO> {
 
   /**
    * Get comments for a post in descending order of creation time
-   * @param id Post id
+   *
+   * @param id       Post id
    * @param pageable Pageable
    * @return List of comments
    */
@@ -194,6 +203,7 @@ public class CommentService extends ContentService<CommentDTO> {
 
   /**
    * Get all comments for a post
+   *
    * @param uuid Post id
    * @return List of comments
    */

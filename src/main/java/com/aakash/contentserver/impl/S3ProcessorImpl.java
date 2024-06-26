@@ -16,6 +16,7 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.Duration;
@@ -26,7 +27,6 @@ import static com.aakash.contentserver.constants.ImageConstants.SIGNED_URL_EXPIR
 
 /**
  * S3 Processor class to upload and download files from S3.
-
  */
 @Service
 public class S3ProcessorImpl implements S3Processor {
@@ -43,6 +43,7 @@ public class S3ProcessorImpl implements S3Processor {
    * Uploads image as byte stream to S3
    * The image is uploaded in parts of 5MB each
    * This method leverages the Multipart upload feature of S3 which allows uploading large files in parts
+   * AWS SDK v2 has built in retry logic for uploads, so we don't need to implement it.
    *
    * @param imageBytes          The image as byte array
    * @param destinationFileName The destination name of the file to be uploaded
@@ -52,9 +53,22 @@ public class S3ProcessorImpl implements S3Processor {
     logger.info("Uploading file to S3: {}", destinationFileName);
     int partSize = ImageConstants.PART_SIZE; // 5 MB chunk
     byte[] buffer = new byte[partSize];
-    fileType.setBucketName(S3Constants.BUCKET_NAME);
-    fileType.setLocation(destinationFileName);
 
+    // If the image is less than 5MB, upload the image directly.
+    if (imageBytes.length < partSize) {
+      try {
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+            .bucket(S3Constants.BUCKET_NAME)
+            .key(destinationFileName)
+            .build();
+
+        s3Client.putObject(putObjectRequest, RequestBody.fromBytes(imageBytes));
+        logger.info("File uploaded to S3: {}", destinationFileName);
+        return;
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
     CreateMultipartUploadRequest createMultipartUploadRequest = CreateMultipartUploadRequest.builder()
         .bucket(S3Constants.BUCKET_NAME)
         .key(destinationFileName)
@@ -95,20 +109,15 @@ public class S3ProcessorImpl implements S3Processor {
 
     s3Client.completeMultipartUpload(completeMultipartUploadRequest);
     logger.info("File uploaded to S3: {}", destinationFileName);
-    fileType.setAccessUri(getAccessUri(destinationFileName));
   }
 
   /**
-   * Get the access URI for the uploaded file
-   * @param key
-   * @return
-   */
-  private String getAccessUri(String key) {
-    return String.format("https://%s.s3.amazonaws.com/%s", S3Constants.BUCKET_NAME, key);
-  }
-
-  /**
-   * method to download file from S3.
+   * method to download file from S3 and return as byte array.
+   * For this specific implementation, the file is downloaded into buffer and then returned.
+   * This can cause memory issues if the file is too large or if there are too many concurrent requests.
+   * The memory issues can be solved creating a FileOutputStream of a file location
+   * and writing the file in chunks. Doing so will consume less memory, but more CPU.
+   *
    * @param fileType FileType
    * @return byte[]
    * @throws RuntimeException Exception
@@ -129,7 +138,7 @@ public class S3ProcessorImpl implements S3Processor {
       }
       return buffer.toByteArray();
     } catch (IOException e) {
-      throw new RuntimeException("Failed to download image from S3 for file : "+ fileType.getLocation(), e);
+      throw new RuntimeException("Failed to download image from S3 for file : " + fileType.getLocation(), e);
     }
   }
 }

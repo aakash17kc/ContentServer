@@ -15,11 +15,10 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping("/v1/images")
 public class ImageController {
   private final ImageService imageService;
-  private final CacheControl cacheControl;
 
-  public ImageController(ImageService imageService, CacheControl cacheControl) {
+  public ImageController(ImageService imageService) {
     this.imageService = imageService;
-    this.cacheControl = cacheControl;
+
   }
 
   /**
@@ -31,8 +30,7 @@ public class ImageController {
   public ResponseEntity<ImageDTO> getImage(@PathVariable String imageId) {
     ImageDTO imageDTO = imageService.getImage(imageId);
     return ResponseEntity
-        .status(HttpStatus.OK)
-        .cacheControl(cacheControl)
+        .ok()
         .body(imageDTO);
   }
 
@@ -48,8 +46,7 @@ public class ImageController {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.IMAGE_JPEG);
     return ResponseEntity
-        .status(HttpStatus.OK)
-        .cacheControl(cacheControl)
+        .ok()
         .headers(headers)
         .body(image);
   }

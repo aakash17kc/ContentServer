@@ -1,14 +1,9 @@
 package com.aakash.contentserver.dto;
 
-import jakarta.validation.constraints.NotNull;
-import org.springframework.data.annotation.Id;
-
-import java.time.Instant;
-
 /**
  * CommentDTO class. This class can be used to handle responses to comment entity request.
  */
-public class CommentDTO extends ActivityDTO{
+public class CommentDTO extends ContentDTO {
   private String postId;
   public CommentDTO() {
   }

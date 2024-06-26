@@ -11,18 +11,9 @@ import java.util.UUID;
 @Document(collection = "posts")
 public class Post extends Content {
 
-  private UUID imageId;
 
-  private String imageAccessUri;
   private Long commentsCount;
   public Post() {
-  }
-  public UUID getImageId() {
-    return imageId;
-  }
-
-  public void setImageId(UUID imageId) {
-    this.imageId = imageId;
   }
 
   public Long getCommentsCount() {
@@ -33,11 +24,4 @@ public class Post extends Content {
     this.commentsCount = commentsCount;
   }
 
-  public String getImageAccessUri() {
-    return imageAccessUri;
-  }
-
-  public void setImageAccessUri(String imageAccessUri) {
-    this.imageAccessUri = imageAccessUri;
-  }
 }

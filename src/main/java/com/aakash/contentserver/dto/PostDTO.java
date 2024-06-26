@@ -1,31 +1,18 @@
 package com.aakash.contentserver.dto;
 
-import com.aakash.contentserver.entities.Comment;
-
-import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * PostDTO class. This class can be used to return responses for Post entity requests.
 
  */
-public class PostDTO extends ActivityDTO{
+public class PostDTO extends ContentDTO {
 
-  public String imageId;
   public int commentsCount;
   public List<CommentDTO> comments;
 
   private String imageAccessUri;
   public PostDTO() {
-  }
-
-  public String getImageId() {
-    return imageId;
-  }
-
-  public void setImageId(String imageId) {
-    this.imageId = imageId;
   }
 
   public int getCommentsCount() {

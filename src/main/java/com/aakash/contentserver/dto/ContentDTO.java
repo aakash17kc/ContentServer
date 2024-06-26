@@ -3,13 +3,17 @@ package com.aakash.contentserver.dto;
 import java.time.Instant;
 import java.util.UUID;
 
-public class ActivityDTO {
+public class ContentDTO {
   private UUID id;
   private String content;
   private String creator;
   private Instant createdAt;
 
-  public ActivityDTO() {
+  private UUID imageId;
+
+  private String imageAccessUri;
+
+  public ContentDTO() {
   }
 
   public UUID getId() {
@@ -42,5 +46,21 @@ public class ActivityDTO {
 
   public void setCreatedAt(Instant createdAt) {
     this.createdAt = createdAt;
+  }
+
+  public UUID getImageId() {
+    return imageId;
+  }
+
+  public void setImageId(UUID imageId) {
+    this.imageId = imageId;
+  }
+
+  public String getImageAccessUri() {
+    return imageAccessUri;
+  }
+
+  public void setImageAccessUri(String imageAccessUri) {
+    this.imageAccessUri = imageAccessUri;
   }
 }
