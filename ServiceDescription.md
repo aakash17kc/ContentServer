@@ -6,18 +6,23 @@
     * Comment - Used to save Comment for the post id
   * FileType - abstract parent class. Use dto save the file type details
     * Image - Used to save Image entity associated with the post id
+
+
 * DTOs
   * ContentDTO - parent class for PostDTO and CommentDTO
     * PostDTO - Used to map to the Post entity
     * CommentDTO - Used to map to the Comment entity
   * FileTypeDTO - abstract parent class
     * ImageDTO - Used to map to the Image entity
+
 * Repositories
   * ContentRepository - parent interface to provide common functionality for Post and comment entities.
     * PostRepository - CRUD repo for Post entity
     * CommentRepository - CRUD repo for Comment entity
   * FileTypeRepository - parent interface for FileType entity
     * ImageRepository - CRUD repo for Image entity
+
+
 * Interfaces
   * ImageFunctions -
     * ImageFunctionsImpl - Implementation of ImageFunctions
@@ -27,6 +32,8 @@
     * ImageResizeConfigurationImpl - Implementation of ImageResizeConfiguration
   * S3Processor - Interface to provide S3 operations
     * S3ProcessorImpl - Implementation of S3Processor
+
+
 * Services
   * ContentService - parent class for PostService and CommentService containing common beans
     * PostService - Service class for handling Post entity

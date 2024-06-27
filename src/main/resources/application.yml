@@ -75,6 +75,7 @@ resilience4j:
           - com.aakash.contentserver.exceptions.UserException
           - com.aakash.contentserver.exceptions.EntityFailedUpdateException
           - com.aakash.contentserver.exceptions.ImageProcessingException
+          - com.aakash.contentserver.exceptions.EntityNotValidException
           - java.lang.IllegalArgumentException
 # rate limiter configuration to support 200 requests per second
   ratelimiter:
@@ -82,6 +83,7 @@ resilience4j:
       rateLimiterAppWide:
         limitForPeriod: 200
         limitRefreshPeriod: 1s
+        # maximum wait time for a call to acquire a permission before it is denied
         timeoutDuration: 0ms
 
 # Different app configurations for different environments.

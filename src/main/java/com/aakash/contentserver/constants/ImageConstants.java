@@ -29,11 +29,11 @@ public class ImageConstants {
   /**
    * The ORIGINAL_LOCATION constant. Used to store the original image location.
    */
-  public static final String ORIGINAL_LOCATION = "original";
+  public static final String ORIGINAL_LOCATION = "original/original-";
   /**
    * The COMPRESSED_LOCATION constant. Used to store the compressed image location.
    */
-  public static final String COMPRESSED_LOCATION = "compressed";
+  public static final String COMPRESSED_LOCATION = "compressed/compressed-";
   /**
    * The expiration for the signed S3 URL in days.
    */
@@ -50,4 +50,5 @@ public class ImageConstants {
    * The content endpoint.
    */
   public static final String CONTENT_ENDPOINT = "/content";
+  public static final int SUPPORTED_IMAGES_COUNT = 1;
 }

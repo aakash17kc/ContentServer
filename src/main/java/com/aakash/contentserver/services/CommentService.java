@@ -80,9 +80,10 @@ public class CommentService extends ContentService<CommentDTO> {
       throw new ContentServerException("Error while saving comment", e);
     }
   }
-
+  
+  //TODO: Implement when comments support image uploads.
   public void processImageUpload(UUID commentId, MultipartFile file, long fileSize, ActivityType activityType) {
-    //TODO: Implement when comments support image uploads.
+  
   }
 
   /**
@@ -173,9 +174,8 @@ public class CommentService extends ContentService<CommentDTO> {
     return new CommentDTO();
   }
 
-  protected String localRateLimitFallback(String placeholder1, String placeholder2, RequestNotPermitted exception) {
+  protected void localRateLimitFallback(String placeholder1, String placeholder2, RequestNotPermitted exception) {
     circuitBreakerConfig.rateLimitFallback(exception);
-    return "";
   }
 
   /**
@@ -185,9 +185,8 @@ public class CommentService extends ContentService<CommentDTO> {
    * @param exception Exception
    * @return CommentDTO
    */
-  protected String localCircuitBreakerFallback(String placeholder1, String placeholder2, RequestNotPermitted exception) {
+  protected void localCircuitBreakerFallback(String placeholder1, String placeholder2, RequestNotPermitted exception) {
     circuitBreakerConfig.circuitBreakerFallback(exception);
-    return "";
   }
 
   /**

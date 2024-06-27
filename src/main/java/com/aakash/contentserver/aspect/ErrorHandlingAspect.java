@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartException;
 
 
@@ -115,5 +116,19 @@ public class ErrorHandlingAspect {
         .status(HttpStatus.BAD_REQUEST)
         .contentType(MediaType.APPLICATION_JSON)
         .body(ex.getMessage());
+  }
+  @ExceptionHandler(MaxUploadSizeExceededException.class)
+  public ResponseEntity<String> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException ex) {
+    return ResponseEntity
+        .status(HttpStatus.BAD_REQUEST)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(JsonUtils.getErrorBody(ex.getMessage()));
+  }
+  @ExceptionHandler(MultipleFilesUploadException.class)
+  public ResponseEntity<String> handleMultipleFilesUploadException(MultipleFilesUploadException ex) {
+    return  ResponseEntity
+        .status(HttpStatus.BAD_REQUEST)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(JsonUtils.getErrorBody(ex.getMessage()));
   }
 }

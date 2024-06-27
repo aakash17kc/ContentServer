@@ -1,7 +1,6 @@
 package com.aakash.contentserver.entities;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -24,7 +23,7 @@ public class Content {
    * In case it's not empty for both cases, we can add @NotNull(message = " ")
    * to validate the if the field is present in the request body.
    */
-  @NotBlank(message = "content/caption cannot be null")
+  @NotBlank(message = "content/caption cannot be empty")
   private String content;
 
   @NotBlank(message = "creator cannot be empty")

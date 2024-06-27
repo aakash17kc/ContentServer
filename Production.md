@@ -25,7 +25,7 @@ Typically, a MVP Production ready service would have the below functionalities.
     * We can implement event-driver architecture using Kafka Topics/AWS SNS/AWS SQS to communicate between services.
     * The flow would be as below
         * User invokes /post
-        * The ContentServer app creates the post entity, uploads original image to S3 and publishes on a Kafka Topic A.
+        * The ContentServer app creates the post entity, uploads  image to S3 and publishes file urls on a Kafka Topic A.
         * The ImageProcessing service listens to the Kafka Topic A, gets the file urls from the topic, processes the image and uploads to S3.
         * After completion, the ImageProcessing service publishes the processed image url to another Kafka Topic B, on which the ContentServer has subscribed
         * The ContentServer receives the event and updates the post entity with the processed image url.
@@ -35,7 +35,7 @@ Typically, a MVP Production ready service would have the below functionalities.
 
 ### Security
 * We need to integrate TLS/SSL to upgrade the server to HTTPS for secure communication.
-* We can integrate use a Load Balancer to distribute the load across multiple instances of the service.
+* We can integrate use a Load Balancer to distribute the load across multiple instances of the service - AWS ALB can be used.
 * We can use an API Gateway to manage the APIs and route the requests to the appropriate service.
   It can be configured to have Bot Protection, Rate Limiting, etc. We can use AWS API Gateway.
 * To setup an authentication logic in the service to validate user request we can use spring security filter chains.
@@ -57,7 +57,7 @@ Typically, a MVP Production ready service would have the below functionalities.
     * We can use JUnit and Mockito for writing unit tests. We can also use SpringBootTest for UTs
 * We can use Postman for API testing.
 * We can use JMeter/Vegeta for load testing.
-* We can integrate SonarQube in our CI/CR for code quality and coverage checks during PRs.
+* We can integrate SonarQube in our CI/CD for code quality and coverage checks during PRs.
 * We can use Gatling for performance testing.
 * We can setup Karate for Integration testing of APIs end to end. We can create a new module inside this repo to have all integration tests
 
@@ -88,7 +88,7 @@ Typically, a MVP Production ready service would have the below functionalities.
 * We can use AWS EKS for Kubernetes for deployment and AWS ECR for storing docker images. We can implement a blue-green deployment strategy to minimise downtime.
 * We can use AWS Lambda for serverless functions.
 * We can use AWS Route 53 for DNS.
-* We can use AWS SNS/SQS for message queuing and event driven flow.
+* We can use Kafka/AWS SNS/SQS for message queuing and event driven flow.
 * We can use AWS DynamoDB/MongoDB for NoSQL database.
 * We can use AWS Elasticache for caching.
 * We can use AWS VPC for networking.

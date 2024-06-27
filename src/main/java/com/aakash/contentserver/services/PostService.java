@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -53,13 +54,13 @@ import static com.aakash.contentserver.constants.CommonConstants.UPLOAD_DIR;
  */
 @Service
 public class PostService extends ContentService<PostDTO> {
-
+  
   private final Logger logger;
   private final ImageProcessor imageProcessor;
   private final ImageService imageService;
-
+  
   private final CommentService commentService;
-
+  
   public PostService(PostRepository postRepository, ModelMapper modelMapper, MongoTemplate mongoTemplate,
                      ObjectMapper objectMapper, Clock clock, CommentsRepository commentsRepository, Validator validator,
                      ImageProcessor imageProcessor, ImageService imageService, CircuitBreakerConfiguration circuitBreakerConfig,
@@ -70,7 +71,7 @@ public class PostService extends ContentService<PostDTO> {
     this.commentService = commentService;
     logger = LoggerFactory.getLogger(PostService.class);
   }
-
+  
   /**
    * Method to save a post with an image.
    *
@@ -99,7 +100,7 @@ public class PostService extends ContentService<PostDTO> {
       throw new ContentServerException(e.getMessage(), e);
     }
   }
-
+  
   /**
    * Method to process the image upload for a post. This methods uploads the original and resized image to S3.
    * Original images are uploaded to "original" folder and resized images are uploaded to "resized' folder.
@@ -113,21 +114,21 @@ public class PostService extends ContentService<PostDTO> {
    * @param activityType The type of activity for which the image is being uploaded
    */
   public void processImageUpload(UUID postId, MultipartFile file, long fileSize, ActivityType activityType) {
-
+    
     File filePath;
     try {
       filePath = File.createTempFile(UPLOAD_DIR + postId, "_" + file.getOriginalFilename());
       // Transfer the contents of the uploaded file to the temporary file
       file.transferTo(filePath);
     } catch (IOException e) {
-      throw new ContentServerException("Error while moving uploaded file to temp storage.",e);
+      throw new ContentServerException("Error while moving uploaded file to temp storage.", e);
     }
     Image image = new Image();
     image.setSizeInKB(fileSize / 1000);
     image.setPostId(postId);
     setFileProperties(image, ImageType.JPG.getValue());
     image.setAccessUri(ImageConstants.ACCESS_URI + image.getId() + ImageConstants.CONTENT_ENDPOINT);
-    String destinationFileName = ImageConstants.COMPRESSED_LOCATION + "/compressed-" +
+    String destinationFileName = ImageConstants.COMPRESSED_LOCATION +
         image.getPostId() + "." + ImageType.JPG.getValue().toLowerCase();
     image.setLocation(destinationFileName);
     try {
@@ -171,7 +172,7 @@ public class PostService extends ContentService<PostDTO> {
     } catch (Exception e) {
       throw new EntityNotFoundException("Post doesn't exist with id " + postId, e);
     }
-
+    
     if (fetchedPost.isPresent()) {
       return convertToTarget(fetchedPost.get(), PostDTO.class);
     } else {
@@ -180,7 +181,7 @@ public class PostService extends ContentService<PostDTO> {
       throw new BadRequestException(errorMessage);
     }
   }
-
+  
   /**
    * Method to update a post by id. Only the caption of the post can be updated for now.
    *
@@ -198,7 +199,7 @@ public class PostService extends ContentService<PostDTO> {
     } catch (Exception e) {
       throw new EntityNotFoundException(e.getMessage(), e);
     }
-
+    
     if (fetchedPost.isPresent()) {
       Post post = fetchedPost.get();
       if (StringUtils.isNotBlank(caption)) post.setContent(caption);
@@ -209,7 +210,7 @@ public class PostService extends ContentService<PostDTO> {
       throw new BadRequestException(errorMessage);
     }
   }
-
+  
   /**
    * Method to set the image id in a post entity.
    *
@@ -224,7 +225,7 @@ public class PostService extends ContentService<PostDTO> {
     } catch (Exception e) {
       throw new EntityNotFoundException(e.getMessage(), e);
     }
-
+    
     if (fetchedPost.isPresent()) {
       Post post = fetchedPost.get();
       if (StringUtils.isNotBlank(accessUri)) post.setImageAccessUri(accessUri);
@@ -236,8 +237,8 @@ public class PostService extends ContentService<PostDTO> {
       throw new BadRequestException(errorMessage);
     }
   }
-
-
+  
+  
   /**
    * Method to update a post entity after any changes.
    *
@@ -254,7 +255,7 @@ public class PostService extends ContentService<PostDTO> {
       throw new EntityFailedUpdateException(e.getMessage(), e);
     }
   }
-
+  
   /**
    * Method to get the top posts based on the number of comments.
    * Fulfils story - As a user, I should be able to get the list of all posts along with the last 2 comments
@@ -281,7 +282,7 @@ public class PostService extends ContentService<PostDTO> {
       throw new ContentServerException("Error while fetching top posts", e);
     }
   }
-
+  
   /**
    * Fetches all posts from db with a page size of 10.
    *
@@ -298,7 +299,7 @@ public class PostService extends ContentService<PostDTO> {
       throw new ContentServerException("Error while fetching all posts", e);
     }
   }
-
+  
   /**
    * Get all comments for a post
    *
@@ -313,7 +314,37 @@ public class PostService extends ContentService<PostDTO> {
     addCommentsDTOToPost(postDTO, postComments);
     return postDTO;
   }
-
+  
+  public List<PostDTO> getNextPostsByCursor(long commentsCount, int pageSize) {
+    try {
+      Pageable pageable = PageRequest.of(0, pageSize);
+      List<Post> allPosts = postRepository.findByCommentsCountLessThanOrderByCommentsCountDesc(commentsCount, pageable);
+      return populateCommentsInPost(allPosts);
+    } catch (Exception e) {
+      throw new ContentServerException("Exception while fetching posts by cursor", e);
+    }
+  }
+  
+  public List<PostDTO> getPreviousPostsByCursor(long commentsCount, int pageSize) {
+    try {
+      Pageable pageable = PageRequest.of(0, pageSize);
+      List<Post> allPosts = postRepository.findByCommentsCountGreaterThanOrderByCommentsCountDesc(commentsCount, pageable);
+      return populateCommentsInPost(allPosts);
+    } catch (Exception e) {
+      throw new ContentServerException("Exception while fetching posts by cursor", e);
+    }
+  }
+  
+  private List<PostDTO> populateCommentsInPost(List<Post> allPosts) {
+    List<PostDTO> postDTOPage = allPosts.stream().map(post -> convertToTarget(post, PostDTO.class)).toList();
+    for (PostDTO postDTO : postDTOPage) {
+      Optional<List<Comment>> postComments =
+          commentService.getByPostIdOrderByCreatedAtDesc(postDTO.getId(), Pageable.ofSize(NUMBER_OF_COMMENTS_PER_POST));
+      addCommentsDTOToPost(postDTO, postComments);
+    }
+    return postDTOPage;
+  }
+  
   /**
    * Method to add comments to a post DTO.
    *
@@ -332,11 +363,11 @@ public class PostService extends ContentService<PostDTO> {
       postDTO.setComments(new ArrayList<>());
     }
   }
-
+  
   private <D, T> D convertToTarget(T inClass, Class<D> outClass) {
     return modelMapper.map(inClass, outClass);
   }
-
+  
   /**
    * Increments the comments count for a given post.
    * MongoDB's $inc operator inherently supports atomic updates.
@@ -353,8 +384,8 @@ public class PostService extends ContentService<PostDTO> {
     Update update = new Update().inc("commentsCount", 1);
     mongoTemplate.updateFirst(query, update, Post.class);
   }
-
-
+  
+  
   /**
    * Decrements the comments count for a given post.
    * MongoDB's $inc operator inherently supports atomic updates.
@@ -367,11 +398,11 @@ public class PostService extends ContentService<PostDTO> {
    */
   @Async("taskExecutor")
   public void decrementCommentCount(UUID postId) {
-    Query query = new Query(Criteria.where("_id").is(postId));
+    Query query = new Query(Criteria.where("id").is(postId));
     Update update = new Update().inc("commentsCount", -1);
     mongoTemplate.updateFirst(query, update, Post.class);
   }
-
+  
   /**
    * Method to handle rate limit fallback for the service.
    *
@@ -383,7 +414,7 @@ public class PostService extends ContentService<PostDTO> {
     circuitBreakerConfig.rateLimitFallback(exception);
     return new PostDTO();
   }
-
+  
   /**
    * Method to handle circuit breaker fallback for the service.
    *
@@ -395,10 +426,11 @@ public class PostService extends ContentService<PostDTO> {
     circuitBreakerConfig.circuitBreakerFallback(exception);
     return new PostDTO();
   }
-
+  
   /**
    * Method to handle rate limit fallback for the service.
-   * @param pageable The page request
+   *
+   * @param pageable  The page request
    * @param exception The exception thrown
    * @return Page<PostDTO> The fallback response
    */
@@ -406,10 +438,11 @@ public class PostService extends ContentService<PostDTO> {
     circuitBreakerConfig.rateLimitFallback(exception);
     return Page.empty();
   }
-
+  
   /**
    * Method to handle circuit breaker fallback for the service.
-   * @param pageable The page request
+   *
+   * @param pageable  The page request
    * @param exception The exception thrown
    * @return Page<PostDTO> The fallback response
    */
@@ -417,7 +450,21 @@ public class PostService extends ContentService<PostDTO> {
     circuitBreakerConfig.circuitBreakerFallback(exception);
     return Page.empty();
   }
-
+  
+  public void deletePost(String postId) {
+    Optional<Post> fetchedPost = postRepository.findById(UUID.fromString(postId));
+    try {
+      if (fetchedPost.isPresent()) {
+        postRepository.deleteById(UUID.fromString(postId));
+      } else {
+        throw new EntityNotFoundException("Post doesn't exist with id " + postId);
+      }
+      postRepository.deleteById(UUID.fromString(postId));
+      logger.info("Post with id {} deleted successfully", postId);
+    } catch (Exception e) {
+      throw new ContentServerException("Error while deleting post " + postId, e);
+    }
+  }
 }
 
 

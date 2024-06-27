@@ -5,6 +5,9 @@ package com.aakash.contentserver.dto;
  */
 public class ImageDTO extends FileDTO{
   private String postId;
+  
+  //Can be used to associate an image with comment.
+  //private String commentId;
 
   public ImageDTO() {
   }

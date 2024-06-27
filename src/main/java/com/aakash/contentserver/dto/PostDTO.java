@@ -8,21 +8,22 @@ import java.util.List;
  */
 public class PostDTO extends ContentDTO {
 
-  public int commentsCount;
+  public long commentsCount;
   public List<CommentDTO> comments;
 
   private String imageAccessUri;
   public PostDTO() {
   }
-
-  public int getCommentsCount() {
+  
+  
+  public long getCommentsCount() {
     return commentsCount;
   }
-
-  public void setCommentsCount(int commentsCount) {
+  
+  public void setCommentsCount(long commentsCount) {
     this.commentsCount = commentsCount;
   }
-
+  
   public List<CommentDTO> getComments() {
     return comments;
   }

@@ -20,7 +20,7 @@ public class FileType {
 
   private String accessUri;
 
-  private Long sizeInKB;
+  private long sizeInKB;
 
   private String type;
 
@@ -57,14 +57,7 @@ public class FileType {
   public void setAccessUri(String accessUri) {
     this.accessUri = accessUri;
   }
-
-  public Long getSizeInKB() {
-    return sizeInKB;
-  }
-
-  public void setSizeInKB(Long sizeInKB) {
-    this.sizeInKB = sizeInKB;
-  }
+  
 
   public String getType() {
     return type;
@@ -81,6 +74,12 @@ public class FileType {
   public void setCreatedAt(Instant createdAt) {
     this.createdAt = createdAt;
   }
-
-
+  
+  public long getSizeInKB() {
+    return sizeInKB;
+  }
+  
+  public void setSizeInKB(long sizeInKB) {
+    this.sizeInKB = sizeInKB;
+  }
 }

@@ -2,8 +2,6 @@ package com.aakash.contentserver.entities;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.UUID;
-
 /**
  * Post entity. This class can be used to handle posts entity request.
 
@@ -12,16 +10,15 @@ import java.util.UUID;
 public class Post extends Content {
 
 
-  private Long commentsCount;
+  private long commentsCount;
   public Post() {
   }
-
-  public Long getCommentsCount() {
+  
+  public long getCommentsCount() {
     return commentsCount;
   }
-
-  public void setCommentsCount(Long commentsCount) {
+  
+  public void setCommentsCount(long commentsCount) {
     this.commentsCount = commentsCount;
   }
-
 }

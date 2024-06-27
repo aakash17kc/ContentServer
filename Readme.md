@@ -35,7 +35,7 @@
   * `mvn clean install` to build the application
   * `mvn spring-boot:run` to run the application
   * Additionally, the application can be run using the jar file created in the target folder.
-    * `java -jar target/content-server-0.0.1-SNAPSHOT.jar`
+    * `java -jar target/content_server.jar`
   * The application runs on port 8080 by default. The port can be changed in the application.yml file.
   * The application can be accessed at http://localhost:8080/v1/
   * The repo can be imported into any IDE and run as a Spring Boot application.
@@ -57,12 +57,12 @@
   * The image can be access by using the link in the GET /post/{postId} request.
   * The images are saved on an S3 bucket created by me. So the POST /post api would fail as the creds are stored in my machine. Please feel free to ask for the creds.
 
-##### Note: The image configuration has been stored in resize_config.json in the resources folder by their content (post,comment ) type
+##### Note: The image configuration has been stored in resize_config.json in the resources folder by their content ( post, comment ) type
 
 ### Non-functional requirements:
   * Maximum response time for any API call except uploading image files - 50 ms
-    * The response time recorded for all APIs on Postman is close to 50 ms, including the upload image API. The image is uploaded asynchronously to S3.
-    * Only the API to get the actual image from S3 takes more time as it depends on the file size.
+    * The response time recorded for all APIs on Postman is close to 50 ms, excluding the upload image API which depends on the file being uploaded. The image is uploaded asynchronously to S3.
+    * The API to get the actual image from S3 also depends on the file size.
     * ![Optional Image Alt Text](src/main/resources/images/S3.png)
     * For the requirement "I should be able to get the list of all posts along with the last 2 comments on each post", 
       the avg response time is around 48 ms.

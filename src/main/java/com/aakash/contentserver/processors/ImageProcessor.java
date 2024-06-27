@@ -1,7 +1,6 @@
 package com.aakash.contentserver.processors;
 
 import com.aakash.contentserver.constants.ImageConstants;
-import com.aakash.contentserver.constants.S3Constants;
 import com.aakash.contentserver.entities.Image;
 import com.aakash.contentserver.enums.ActivityType;
 import com.aakash.contentserver.impl.ImageFunctionImpl;
@@ -19,8 +18,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 /**
  * ImageProcessor class to resize the image and upload to S3.
@@ -72,7 +69,7 @@ public class ImageProcessor {
     int width = getImageWidth(imageConfig);
     int height = getImageHeight(imageConfig);
     String format = getImageFormat(imageConfig);
-    String destinationFileName = ImageConstants.COMPRESSED_LOCATION + "/compressed-" + image.getPostId() + "." + format;
+    String destinationFileName = image.getLocation();
     // Resizing the image.
     ByteArrayOutputStream imageOutputStream = imageFunctionImpl.resizeImage(filePath, width, height, format);
     // Uploading the image to S3.
@@ -94,7 +91,7 @@ public class ImageProcessor {
     logger.info("Uploading original image to S3 for postId: {}", image.getPostId());
     JsonNode imageConfig = getImageConfigurationByActivity(activityType);
     String format = imageConfig.get(ImageConstants.TYPE).asText();
-    String destinationFileName = ImageConstants.ORIGINAL_LOCATION + "/original-" + image.getPostId() + "." + format;
+    String destinationFileName = ImageConstants.ORIGINAL_LOCATION + image.getPostId() + "." + format;
     s3ProcessorImpl.uploadFileAsByteStream(FileUtils.readFileToByteArray(filePath), destinationFileName, image);
     logger.info("Image uploaded successfully for postId: " + image.getPostId());
   }

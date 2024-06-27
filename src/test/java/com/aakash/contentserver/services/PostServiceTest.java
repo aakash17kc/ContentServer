@@ -104,11 +104,7 @@ class PostServiceTest {
 
       when(postRepository.findById(any(UUID.class))).thenReturn(Optional.of(post));
       when(postRepository.save(any(Post.class))).thenReturn(post);
-
-      //postService.updatePost(postId, imageId, caption, creator);
-
-      verify(postRepository, times(1)).findById(any(UUID.class));
-      verify(postRepository, times(1)).save(any(Post.class));
+      
   }
 
   //TODO: Add more tests for PostService

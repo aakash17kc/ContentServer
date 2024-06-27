@@ -112,7 +112,7 @@ public class S3ProcessorImpl implements S3Processor {
    * and writing the file in chunks. Doing so will consume less memory, but more CPU.
    *
    * @param fileType FileType
-   * @return byte[]
+   * @return byte[] of the image
    * @throws RuntimeException Exception
    */
   @Override
