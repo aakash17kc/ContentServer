@@ -52,7 +52,7 @@ public class ImageProcessor {
    * This method is asynchronous and runs on a separate thread. The Async configuration is present in the AsyncConfig class.
    * If multiple services need to use this configuration, it can be saved to the database and fetched from there.
    *
-   * @param file         Image file to resize.
+   * @param filePath     File to be resized.
    * @param image        Image object to set the type.
    * @param activityType Content type to fetch the configuration.
    * @param <T>          Image type.
@@ -74,28 +74,25 @@ public class ImageProcessor {
     ByteArrayOutputStream imageOutputStream = imageFunctionImpl.resizeImage(filePath, width, height, format);
     // Uploading the image to S3.
     logger.info("Uploading resized image to S3 for postId: {}", image.getPostId());
-    s3ProcessorImpl.uploadFileAsByteStream(imageOutputStream.toByteArray(), destinationFileName, image);
+    s3ProcessorImpl.uploadFileAsByteStream(imageOutputStream.toByteArray(), destinationFileName);
   }
-
+  
   /**
    * Method to upload the original image to S3.
    *
-   * @param file         Image file to upload.
-   * @param image        Image object to set the type.
-   * @param activityType Content type to fetch the configuration.
-   * @param <T>          Image type.
+   * @param filePath            File to be uploaded
+   * @param image               Image object to set the type.
+   * @param destinationFileName The destination name of the file to be uploaded
+   * @param <T>                 File type.
    * @throws IOException Exception if there is an issue with the file.
    */
   @Async("taskExecutor")
-  public <T extends Image> void uploadOriginalImageToS3(File filePath, T image, ActivityType activityType) throws IOException {
+  public <T extends Image> void uploadOriginalImageToS3(File filePath, T image, String destinationFileName) throws IOException {
     logger.info("Uploading original image to S3 for postId: {}", image.getPostId());
-    JsonNode imageConfig = getImageConfigurationByActivity(activityType);
-    String format = imageConfig.get(ImageConstants.TYPE).asText();
-    String destinationFileName = ImageConstants.ORIGINAL_LOCATION + image.getPostId() + "." + format;
-    s3ProcessorImpl.uploadFileAsByteStream(FileUtils.readFileToByteArray(filePath), destinationFileName, image);
-    logger.info("Image uploaded successfully for postId: " + image.getPostId());
+    s3ProcessorImpl.uploadFileAsByteStream(FileUtils.readFileToByteArray(filePath), destinationFileName);
+    logger.info("Original image uploaded successfully for postId: " + image.getPostId());
   }
-
+  
   public <T extends Image> byte[] downloadImageFromS3(T image) throws IOException {
     logger.info("Downloading resized image from S3 for postId: {}", image.getPostId());
     return s3ProcessorImpl.downloadFile(image);
@@ -122,7 +119,7 @@ public class ImageProcessor {
   private String getImageFormat(JsonNode jsonNode) {
     return jsonNode.get(ImageConstants.TYPE).asText();
   }
-
+  
   /**
    * Method to get the image configuration based on the activity type - Post or Comment.
    *
@@ -131,5 +128,13 @@ public class ImageProcessor {
    */
   private JsonNode getImageConfigurationByActivity(ActivityType activityType) {
     return imageResizeConfiguration.getImageConfigurationByActivity(activityType);
+  }
+  
+  public String getResizedLocation(String postId, String extension) {
+    return ImageConstants.COMPRESSED_LOCATION + postId + "." + extension;
+  }
+  
+  public String getOriginalLocation(String postId, String extension) {
+    return ImageConstants.ORIGINAL_LOCATION + postId + "." + extension;
   }
 }

@@ -42,7 +42,7 @@ public class S3ProcessorImpl implements S3Processor {
    * @param destinationFileName The destination name of the file to be uploaded
    */
   @Override
-  public void uploadFileAsByteStream(byte[] imageBytes, String destinationFileName, FileType fileType) {
+  public void uploadFileAsByteStream(byte[] imageBytes, String destinationFileName) {
     logger.info("Uploading file to S3: {}", destinationFileName);
     int partSize = ImageConstants.PART_SIZE; // 5 MB chunk
     byte[] buffer = new byte[partSize];

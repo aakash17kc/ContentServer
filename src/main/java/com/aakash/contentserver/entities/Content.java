@@ -29,6 +29,7 @@ public class Content {
   @NotBlank(message = "creator cannot be empty")
   private String creator;
   @CreatedDate
+  @Indexed
   private Instant createdAt;
 
   private UUID imageId;

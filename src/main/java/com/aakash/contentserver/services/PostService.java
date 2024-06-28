@@ -21,6 +21,7 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import jakarta.validation.Validator;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -124,20 +125,23 @@ public class PostService extends ContentService<PostDTO> {
       throw new ContentServerException("Error while moving uploaded file to temp storage.", e);
     }
     Image image = new Image();
+    //Can be changed to save the resized file size.
     image.setSizeInKB(fileSize / 1000);
     image.setPostId(postId);
     setFileProperties(image, ImageType.JPG.getValue());
     image.setAccessUri(ImageConstants.ACCESS_URI + image.getId() + ImageConstants.CONTENT_ENDPOINT);
-    String destinationFileName = ImageConstants.COMPRESSED_LOCATION +
-        image.getPostId() + "." + ImageType.JPG.getValue().toLowerCase();
+    
+    String destinationFileName = imageProcessor.getResizedLocation(postId.toString(), ImageType.JPG.getValue());
+    String originalFileName = imageProcessor.getOriginalLocation(postId.toString(), FilenameUtils.getExtension(file.getOriginalFilename()));
     image.setLocation(destinationFileName);
+    
     try {
-      imageProcessor.uploadOriginalImageToS3(filePath, image, activityType);
+      imageProcessor.uploadOriginalImageToS3(filePath, image, originalFileName);
       imageProcessor.resizeImageAndUploadToS3(filePath, image, activityType);
       ImageDTO savedImage = imageService.saveImage(image);
       logger.info("Image saved to db successfully for postId: " + postId);
       
-      updateImageInPost(postId, UUID.fromString(savedImage.getId()), image.getAccessUri());
+      updateImageIdInPost(postId, UUID.fromString(savedImage.getId()), image.getAccessUri());
       logger.info(String.format("Post updated with imageId %s for postId: %s", savedImage.getId(), postId));
     } catch (IOException e) {
       logger.error("Error while processing image for postId: " + postId, e);
@@ -166,6 +170,7 @@ public class PostService extends ContentService<PostDTO> {
   @CircuitBreaker(name = "circuitBreakerAppWide", fallbackMethod = "localCircuitBreakerFallback")
   public PostDTO getPost(String postId) throws BadRequestException {
     Optional<Post> fetchedPost;
+    
     try {
       fetchedPost = postRepository.findById(UUID.fromString(postId));
       logger.info("Fetched post with id: " + postId);
@@ -203,7 +208,7 @@ public class PostService extends ContentService<PostDTO> {
     if (fetchedPost.isPresent()) {
       Post post = fetchedPost.get();
       if (StringUtils.isNotBlank(caption)) post.setContent(caption);
-      return updatePost(post);
+      return saveUpdatedPost(post);
     } else {
       String errorMessage = "Post with id: " + postId + " doesn't exist.";
       logger.error(errorMessage);
@@ -217,7 +222,7 @@ public class PostService extends ContentService<PostDTO> {
    * @param postId  The id of the post to be updated.
    * @param imageId The id of the image to be associated with the post.
    */
-  private void updateImageInPost(UUID postId, UUID imageId, String accessUri) {
+  private void updateImageIdInPost(UUID postId, UUID imageId, String accessUri) {
     Optional<Post> fetchedPost;
     try {
       fetchedPost = postRepository.findById(postId);
@@ -230,7 +235,7 @@ public class PostService extends ContentService<PostDTO> {
       Post post = fetchedPost.get();
       if (StringUtils.isNotBlank(accessUri)) post.setImageAccessUri(accessUri);
       if (StringUtils.isNotBlank(postId.toString())) post.setImageId(imageId);
-      updatePost(post);
+      saveUpdatedPost(post);
     } else {
       String errorMessage = "Post with id: " + postId + " doesn't exist.";
       logger.error(errorMessage);
@@ -245,7 +250,7 @@ public class PostService extends ContentService<PostDTO> {
    * @param post The post entity to be updated.
    * @return PostDTO The updated post.
    */
-  private PostDTO updatePost(Post post) {
+  private PostDTO saveUpdatedPost(Post post) {
     try {
       Post updatedPost = postRepository.save(post);
       logger.info("Post updated successfully with id: " + post.getId());
